@@ -1,7 +1,11 @@
+var engine;
 // Main entry point to the application
 window.onload = function () {
-    var engine = new Weaver.Engine;
+    engine = new Weaver.Engine;
     engine.start();
+};
+window.onresize = function () {
+    engine.resize();
 };
 var Weaver;
 (function (Weaver) {
@@ -22,6 +26,15 @@ var Weaver;
             this.m_Canvas = Weaver.GLUtilities.initialize();
             Weaver.gl.clearColor(0.15, 0.15, 0.15, 1);
             this.loop();
+        };
+        /**
+         * Resizes the canvas to fit the window
+         */
+        Engine.prototype.resize = function () {
+            if (this.m_Canvas !== undefined) {
+                this.m_Canvas.width = window.innerWidth;
+                this.m_Canvas.height = window.innerHeight;
+            }
         };
         Engine.prototype.loop = function () {
             Weaver.gl.clear(Weaver.gl.COLOR_BUFFER_BIT);

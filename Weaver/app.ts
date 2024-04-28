@@ -1,5 +1,11 @@
-﻿// Main entry point to the application
+﻿var engine: Weaver.Engine;
+
+// Main entry point to the application
 window.onload = function () {
-    let engine = new Weaver.Engine;
+    engine = new Weaver.Engine;
     engine.start();
+}
+
+window.onresize = function () {
+    engine.resize();
 }

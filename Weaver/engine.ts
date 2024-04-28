@@ -25,6 +25,16 @@
             this.loop();
         }
 
+        /**
+         * Resizes the canvas to fit the window
+         */
+        public resize(): void {
+            if (this.m_Canvas !== undefined) {
+                this.m_Canvas.width = window.innerWidth;
+                this.m_Canvas.height = window.innerHeight;
+            }
+        }
+
         private loop(): void {
             gl.clear(gl.COLOR_BUFFER_BIT);
 
