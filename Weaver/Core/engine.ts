@@ -8,6 +8,8 @@
         private m_Canvas: HTMLCanvasElement;
         private m_Shader: Shader;
 
+        private m_Buffer: WebGLBuffer;
+
         /**
          * Creates a new engine
          */
@@ -19,13 +21,15 @@
          */
         public start(): void {
             this.m_Canvas = GLUtilities.initialize();
-            engine.resize();
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
 
             this.loadShaders();
             this.m_Shader.use();
 
+            this.createBuffer();
+
+            engine.resize();
             this.loop();
         }
 
@@ -36,13 +40,38 @@
             if (this.m_Canvas !== undefined) {
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
+
+                gl.viewport(0, 0, this.m_Canvas.width, this.m_Canvas.height);
             }
         }
 
         private loop(): void {
             gl.clear(gl.COLOR_BUFFER_BIT);
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Buffer);
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(0);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+
             requestAnimationFrame(this.loop.bind(this));
+        }
+
+        private createBuffer(): void {
+            this.m_Buffer = gl.createBuffer();
+
+            let vertices = [
+                0, 0, 0,
+                0.5, 0, 0,
+                0.5, 1, 0
+            ];
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Buffer);
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(0);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, undefined);
+            gl.disableVertexAttribArray(0);
         }
 
         private loadShaders(): void {

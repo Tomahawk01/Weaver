@@ -23,10 +23,11 @@ var Weaver;
          */
         Engine.prototype.start = function () {
             this.m_Canvas = Weaver.GLUtilities.initialize();
-            engine.resize();
             Weaver.gl.clearColor(0.15, 0.15, 0.15, 1);
             this.loadShaders();
             this.m_Shader.use();
+            this.createBuffer();
+            engine.resize();
             this.loop();
         };
         /**
@@ -36,11 +37,30 @@ var Weaver;
             if (this.m_Canvas !== undefined) {
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
+                Weaver.gl.viewport(0, 0, this.m_Canvas.width, this.m_Canvas.height);
             }
         };
         Engine.prototype.loop = function () {
             Weaver.gl.clear(Weaver.gl.COLOR_BUFFER_BIT);
+            Weaver.gl.bindBuffer(Weaver.gl.ARRAY_BUFFER, this.m_Buffer);
+            Weaver.gl.vertexAttribPointer(0, 3, Weaver.gl.FLOAT, false, 0, 0);
+            Weaver.gl.enableVertexAttribArray(0);
+            Weaver.gl.drawArrays(Weaver.gl.TRIANGLES, 0, 3);
             requestAnimationFrame(this.loop.bind(this));
+        };
+        Engine.prototype.createBuffer = function () {
+            this.m_Buffer = Weaver.gl.createBuffer();
+            var vertices = [
+                0, 0, 0,
+                0.5, 0, 0,
+                0.5, 1, 0
+            ];
+            Weaver.gl.bindBuffer(Weaver.gl.ARRAY_BUFFER, this.m_Buffer);
+            Weaver.gl.vertexAttribPointer(0, 3, Weaver.gl.FLOAT, false, 0, 0);
+            Weaver.gl.enableVertexAttribArray(0);
+            Weaver.gl.bufferData(Weaver.gl.ARRAY_BUFFER, new Float32Array(vertices), Weaver.gl.STATIC_DRAW);
+            Weaver.gl.bindBuffer(Weaver.gl.ARRAY_BUFFER, undefined);
+            Weaver.gl.disableVertexAttribArray(0);
         };
         Engine.prototype.loadShaders = function () {
             var vertexShaderSource = "\n            attribute vec3 a_position;\n\n            void main()\n            {\n                gl_Position = vec4(a_position, 1.0);\n            }";
