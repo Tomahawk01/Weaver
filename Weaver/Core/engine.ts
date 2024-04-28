@@ -47,7 +47,7 @@
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
 
-                gl.viewport(-1, 1, -1, 1);
+                //gl.viewport(-1, 1, -1, 1);
             }
         }
 

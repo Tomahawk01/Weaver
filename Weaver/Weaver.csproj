@@ -98,6 +98,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="Core\assets\assetManager.ts" />
+    <TypeScriptCompile Include="Core\assets\IAsset.ts" />
+    <TypeScriptCompile Include="Core\assets\IAssetLoader.ts" />
+    <TypeScriptCompile Include="Core\assets\imageAssetLoader.ts" />
     <TypeScriptCompile Include="Core\engine.ts" />
     <TypeScriptCompile Include="Core\gl\gl.ts" />
     <TypeScriptCompile Include="Core\gl\glBuffer.ts" />
@@ -105,6 +109,10 @@
     <TypeScriptCompile Include="Core\graphics\sprite.ts" />
     <TypeScriptCompile Include="Core\math\matrix4x4.ts" />
     <TypeScriptCompile Include="Core\math\vector3.ts" />
+    <TypeScriptCompile Include="Core\message\IMessageHandler.ts" />
+    <TypeScriptCompile Include="Core\message\message.ts" />
+    <TypeScriptCompile Include="Core\message\messageBus.ts" />
+    <TypeScriptCompile Include="Core\message\messageSubscriptionNode.ts" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />

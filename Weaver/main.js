@@ -9,6 +9,137 @@ window.onresize = function () {
 };
 var Weaver;
 (function (Weaver) {
+    Weaver.MESSAGE_ASSET_LOADER_ASSET_LOADED = "MESSAGE_ASSET_LOADER_ASSET_LOADED::";
+    /** Manages all assets in the engine */
+    var AssetManager = /** @class */ (function () {
+        /** Private to enforce static method calls and prevent instantiation*/
+        function AssetManager() {
+        }
+        /** Initialize this manager */
+        AssetManager.initialize = function () {
+            AssetManager.m_Loaders.push(new Weaver.ImageAssetLoader());
+        };
+        /**
+         * Registers provided loader with the asset manager
+         * @param loader Loader to be registered
+         */
+        AssetManager.registerLoader = function (loader) {
+            AssetManager.m_Loaders.push(loader);
+        };
+        /**
+         * A callback to be made from an asset loader when an asset is loaded
+         * @param asset
+         */
+        AssetManager.onAssetLoaded = function (asset) {
+            AssetManager.m_LoadedAssets[asset.name] = asset;
+            Weaver.Message.send(Weaver.MESSAGE_ASSET_LOADER_ASSET_LOADED + asset.name, this, asset);
+        };
+        /**
+         * Attempts to load an asset using a registered asset loader
+         * @param assetName Name/url of the asset to be loaded
+         */
+        AssetManager.loadAsset = function (assetName) {
+            var extension = assetName.split('.').pop().toLowerCase();
+            for (var _i = 0, _a = AssetManager.m_Loaders; _i < _a.length; _i++) {
+                var l = _a[_i];
+                if (l.supportedExtensions.indexOf(extension) !== -1) {
+                    l.loadAsset(assetName);
+                    return;
+                }
+            }
+            console.warn("Unable to load asset with extension " + extension + ". There is no loader associated with it");
+        };
+        /**
+         * Indicates if an asset with provided name has been loaded
+         * @param assetName Asset name to check
+         */
+        AssetManager.isAssetLoaded = function (assetName) {
+            return AssetManager.m_LoadedAssets[assetName] !== undefined;
+        };
+        /**
+         * Attempts to get an asset with provided name
+         * @param assetName Asset name to get
+         * @returns If found it is returned; otherwise undefined is returned
+         */
+        AssetManager.getAsset = function (assetName) {
+            if (AssetManager.m_LoadedAssets[assetName] !== undefined) {
+                return AssetManager.m_LoadedAssets[assetName];
+            }
+            else {
+                AssetManager.loadAsset(assetName);
+            }
+            return undefined;
+        };
+        AssetManager.m_Loaders = [];
+        AssetManager.m_LoadedAssets = {};
+        return AssetManager;
+    }());
+    Weaver.AssetManager = AssetManager;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /** Represents an image asset */
+    var ImageAsset = /** @class */ (function () {
+        /**
+         * Creates a new image asset
+         * @param name Name of this asset
+         * @param data Data of this asset
+         */
+        function ImageAsset(name, data) {
+            this.name = name;
+            this.data = data;
+        }
+        Object.defineProperty(ImageAsset.prototype, "width", {
+            /** Width of this image asset */
+            get: function () {
+                return this.data.width;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(ImageAsset.prototype, "height", {
+            /** Height of this image asset */
+            get: function () {
+                return this.data.height;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        return ImageAsset;
+    }());
+    Weaver.ImageAsset = ImageAsset;
+    /** Represents an image asset loader */
+    var ImageAssetLoader = /** @class */ (function () {
+        function ImageAssetLoader() {
+        }
+        Object.defineProperty(ImageAssetLoader.prototype, "supportedExtensions", {
+            /** Extensions supported by this asset loader */
+            get: function () {
+                return ["png", "gif", "jpg"];
+            },
+            enumerable: false,
+            configurable: true
+        });
+        /**
+         * Loads an asset with the given name
+         * @param assetName Name of the asset to be loaded
+         */
+        ImageAssetLoader.prototype.loadAsset = function (assetName) {
+            var image = new Image();
+            image.onload = this.onImageLoaded.bind(this, assetName, image);
+            image.src = assetName;
+        };
+        ImageAssetLoader.prototype.onImageLoaded = function (assetName, image) {
+            console.log("onImageLoaded: assetName/image", assetName, image);
+            var asset = new ImageAsset(assetName, image);
+            Weaver.AssetManager.onAssetLoaded(asset);
+        };
+        return ImageAssetLoader;
+    }());
+    Weaver.ImageAssetLoader = ImageAssetLoader;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
     /**
     * Main game engine class
     */
@@ -41,7 +172,7 @@ var Weaver;
             if (this.m_Canvas !== undefined) {
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
-                Weaver.gl.viewport(-1, 1, -1, 1);
+                //gl.viewport(-1, 1, -1, 1);
             }
         };
         Engine.prototype.loop = function () {
@@ -556,5 +687,160 @@ var Weaver;
         return Vector3;
     }());
     Weaver.Vector3 = Vector3;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /** Represents message priorities */
+    var MessagePriority;
+    (function (MessagePriority) {
+        /** Normal message priority, message will be sent as soon as the queue allows */
+        MessagePriority[MessagePriority["NORMAL"] = 0] = "NORMAL";
+        /** High message priority, message will be sent immediately */
+        MessagePriority[MessagePriority["HIGH"] = 1] = "HIGH";
+    })(MessagePriority = Weaver.MessagePriority || (Weaver.MessagePriority = {}));
+    /** Represents a message which can be sent and processed across the system */
+    var Message = /** @class */ (function () {
+        /**
+         * Creates a new message
+         * @param code Code for this message, which is subscribed to and listened for
+         * @param sender Class instance which send this message
+         * @param context Free-form context data to be included with this message
+         * @param priority Priority of this message
+         */
+        function Message(code, sender, context, priority) {
+            if (priority === void 0) { priority = MessagePriority.NORMAL; }
+            this.code = code;
+            this.sender = sender;
+            this.context = context;
+            this.priority = priority;
+        }
+        /**
+         * Sends a normal-priority message with provided parameters
+         * @param code Code for this message, which is subscribed to and listened for
+         * @param sender Class instance which send this message
+         * @param context Free-form context data to be included with this message
+         */
+        Message.send = function (code, sender, context) {
+            Weaver.MessageBus.post(new Message(code, sender, context, MessagePriority.NORMAL));
+        };
+        /**
+         * Sends a high-priority message with provided parameters
+         * @param code Code for this message, which is subscribed to and listened for
+         * @param sender Class instance which send this message
+         * @param context Free-form context data to be included with this message
+         */
+        Message.sendPriority = function (code, sender, context) {
+            Weaver.MessageBus.post(new Message(code, sender, context, MessagePriority.HIGH));
+        };
+        /**
+         * Subscribes the provided handler to listen for the message
+         * @param code Code to listen for
+         * @param handler Message handler to be called when a message containing the provided code is sent
+         */
+        Message.subscribe = function (code, handler) {
+            Weaver.MessageBus.addSubscription(code, handler);
+        };
+        /**
+         * Unsubscribes the provided handler from listening for the message
+         * @param code Code to no longer listen for
+         * @param handler Message handler to unsubscribe
+         */
+        Message.unsubscribe = function (code, handler) {
+            Weaver.MessageBus.removeSubscription(code, handler);
+        };
+        return Message;
+    }());
+    Weaver.Message = Message;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /** Represents message manager responsible for sending messages across the system */
+    var MessageBus = /** @class */ (function () {
+        /** Constructor hidden to prevent instantiation */
+        function MessageBus() {
+        }
+        /**
+         * Adds a subscription to the privided code using provided handler
+         * @param code Code to listen for
+         * @param handler Handler to be subscribed
+         */
+        MessageBus.addSubscription = function (code, handler) {
+            if (MessageBus.m_Subscriptions[code] !== undefined) {
+                MessageBus.m_Subscriptions[code] = [];
+            }
+            if (MessageBus.m_Subscriptions[code].indexOf(handler) !== -1) {
+                console.warn("Attempting to add a duplicate handler to code: " + code + ". Subscription not added");
+            }
+            else {
+                MessageBus.m_Subscriptions[code].push(handler);
+            }
+        };
+        /**
+         * Removes a subscription to the privided code using provided handler
+         * @param code Code to no longer listen for
+         * @param handler Handler to be unsubscribed
+         * @returns
+         */
+        MessageBus.removeSubscription = function (code, handler) {
+            if (MessageBus.m_Subscriptions[code] === undefined) {
+                console.warn("Cannot unsubscribe handler from code: " + code + ". That code is not subscribed to");
+                return;
+            }
+            var nodeIndex = MessageBus.m_Subscriptions[code].indexOf(handler);
+            if (nodeIndex !== -1) {
+                MessageBus.m_Subscriptions[code].splice(nodeIndex, 1);
+            }
+        };
+        /**
+         * Posts the provided message to the message system
+         * @param message Message to be sent
+         */
+        MessageBus.post = function (message) {
+            console.log("Message posted: ", message);
+            var handlers = MessageBus.m_Subscriptions[message.code];
+            if (handlers === undefined) {
+                return;
+            }
+            for (var _i = 0, handlers_1 = handlers; _i < handlers_1.length; _i++) {
+                var h = handlers_1[_i];
+                if (message.priority === Weaver.MessagePriority.HIGH) {
+                    h.onMessage(message);
+                }
+                else {
+                    MessageBus.m_NormalMessageQueue.push(new Weaver.MessageSubscriptionNode(message, h));
+                }
+            }
+        };
+        /**
+         * Performs update logic on this message bus
+         * @param time Delta time in milliseconds since the last update
+         */
+        MessageBus.update = function (time) {
+            if (MessageBus.m_NormalMessageQueue.length === 0) {
+                return;
+            }
+            var messageLimit = Math.min(MessageBus.m_NormalQueueMessagePerUpdate, MessageBus.m_NormalMessageQueue.length);
+            for (var i = 0; i < messageLimit; ++i) {
+                var node = MessageBus.m_NormalMessageQueue.pop();
+                node.handler.onMessage(node.message);
+            }
+        };
+        MessageBus.m_Subscriptions = {};
+        MessageBus.m_NormalQueueMessagePerUpdate = 10;
+        MessageBus.m_NormalMessageQueue = [];
+        return MessageBus;
+    }());
+    Weaver.MessageBus = MessageBus;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    var MessageSubscriptionNode = /** @class */ (function () {
+        function MessageSubscriptionNode(message, handler) {
+            this.message = message;
+            this.handler = handler;
+        }
+        return MessageSubscriptionNode;
+    }());
+    Weaver.MessageSubscriptionNode = MessageSubscriptionNode;
 })(Weaver || (Weaver = {}));
 //# sourceMappingURL=main.js.map
