@@ -1,22 +1,19 @@
 ﻿namespace Weaver {
 
-    /** Represents 3-component vector */
-    export class Vector3 {
+    /** Represents 2-component vector */
+    export class Vector2 {
 
         private m_X: number;
         private m_Y: number;
-        private m_Z: number;
 
         /**
-         * Creates a new vector3
+         * Creates a new vector2
          * @param x The X component
          * @param y The Y component
-         * @param z The Z component
          */
-        public constructor(x: number = 0, y: number = 0, z: number = 0) {
+        public constructor(x: number = 0, y: number = 0) {
             this.m_X = x;
             this.m_Y = y;
-            this.m_Z = z;
         }
 
         public get x(): number {
@@ -35,17 +32,9 @@
             this.m_Y = value;
         }
 
-        public get z(): number {
-            return this.m_Z;
-        }
-
-        public set z(value: number) {
-            this.m_Z = value;
-        }
-
         /** Returns the data of this vector as a number array */
         public toArray(): number[] {
-            return [this.m_X, this.m_Y, this.m_Z];
+            return [this.m_X, this.m_Y];
         }
 
         /** Returns the data of this vector as a Float32Array */

@@ -5,8 +5,8 @@
     /** Manages all assets in the engine */
     export class AssetManager {
 
-        private static m_Loaders: IAssetLoader[] = [];
-        private static m_LoadedAssets: { [name: string]: IAsset } = {};
+        private static s_Loaders: IAssetLoader[] = [];
+        private static s_LoadedAssets: { [name: string]: IAsset } = {};
 
         /** Private to enforce static method calls and prevent instantiation*/
         private constructor() {
@@ -14,7 +14,7 @@
 
         /** Initialize this manager */
         public static initialize(): void {
-            AssetManager.m_Loaders.push(new ImageAssetLoader());
+            AssetManager.s_Loaders.push(new ImageAssetLoader());
         }
 
         /**
@@ -22,7 +22,7 @@
          * @param loader Loader to be registered
          */
         public static registerLoader(loader: IAssetLoader): void {
-            AssetManager.m_Loaders.push(loader);
+            AssetManager.s_Loaders.push(loader);
         }
 
         /**
@@ -30,7 +30,7 @@
          * @param asset
          */
         public static onAssetLoaded(asset: IAsset): void {
-            AssetManager.m_LoadedAssets[asset.name] = asset;
+            AssetManager.s_LoadedAssets[asset.name] = asset;
             Message.send(MESSAGE_ASSET_LOADER_ASSET_LOADED + asset.name, this, asset);
         }
 
@@ -40,7 +40,7 @@
          */
         public static loadAsset(assetName: string): void {
             let extension = assetName.split('.').pop().toLowerCase();
-            for (let l of AssetManager.m_Loaders) {
+            for (let l of AssetManager.s_Loaders) {
                 if (l.supportedExtensions.indexOf(extension) !== -1) {
                     l.loadAsset(assetName);
                     return;
@@ -55,7 +55,7 @@
          * @param assetName Asset name to check
          */
         public static isAssetLoaded(assetName: string): boolean {
-            return AssetManager.m_LoadedAssets[assetName] !== undefined;
+            return AssetManager.s_LoadedAssets[assetName] !== undefined;
         }
 
         /**
@@ -64,8 +64,8 @@
          * @returns If found it is returned; otherwise undefined is returned
          */
         public static getAsset(assetName: string): IAsset {
-            if (AssetManager.m_LoadedAssets[assetName] !== undefined) {
-                return AssetManager.m_LoadedAssets[assetName];
+            if (AssetManager.s_LoadedAssets[assetName] !== undefined) {
+                return AssetManager.s_LoadedAssets[assetName];
             }
             else {
                 AssetManager.loadAsset(assetName);

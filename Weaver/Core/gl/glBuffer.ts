@@ -1,26 +1,16 @@
 ﻿namespace Weaver {
 
-    /**
-     * Represents the information needed for a GLBuffer attribute
-     */
+    /** Represents the information needed for a GLBuffer attribute */
     export class AttributeInfo {
-        /**
-         * Location of this attribute
-         */
+        /** Location of this attribute */
         public location: number;
-        /**
-         * Size (number of elements) in this attribute (i.e Vector3 = 3)
-         */
+        /** Size (number of elements) in this attribute (i.e Vector3 = 3) */
         public size: number;
-        /**
-         * Number of elements from the beginning of the buffer
-         */
+        /** Number of elements from the beginning of the buffer */
         public offset: number;
     }
 
-    /**
-     * Represents a WebGL buffer
-     */
+    /** Represents a WebGL buffer */
     export class GLBuffer {
 
         private m_HasAttributeLocation: boolean = false;
@@ -72,9 +62,7 @@
             this.m_Buffer = gl.createBuffer();
         }
 
-        /**
-         * Destroys this buffer
-         */
+        /** Destroys this buffer */
         public destroy(): void {
             gl.deleteBuffer(this.m_Buffer);
         }
@@ -94,9 +82,7 @@
             }
         }
 
-        /**
-         * Unbinds this buffer
-         */
+        /** Unbinds this buffer */
         public unbind(): void {
             for (let it of this.m_Attributes) {
                 gl.disableVertexAttribArray(it.location);
@@ -124,9 +110,7 @@
             }
         }
 
-        /**
-         * Uploads this buffer's data to the GPU
-         */
+        /** Uploads this buffer's data to the GPU */
         public upload(): void {
             gl.bindBuffer(this.m_TargerBufferType, this.m_Buffer);
 
@@ -158,9 +142,7 @@
             gl.bufferData(this.m_TargerBufferType, bufferData, gl.STATIC_DRAW);
         }
 
-        /**
-         * Draws this buffer
-         */
+        /** Draws this buffer */
         public draw(): void {
             if (this.m_TargerBufferType === gl.ARRAY_BUFFER) {
                 gl.drawArrays(this.m_Mode, 0, this.m_Data.length / this.m_ElementSize);

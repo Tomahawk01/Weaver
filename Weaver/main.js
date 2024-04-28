@@ -17,21 +17,21 @@ var Weaver;
         }
         /** Initialize this manager */
         AssetManager.initialize = function () {
-            AssetManager.m_Loaders.push(new Weaver.ImageAssetLoader());
+            AssetManager.s_Loaders.push(new Weaver.ImageAssetLoader());
         };
         /**
          * Registers provided loader with the asset manager
          * @param loader Loader to be registered
          */
         AssetManager.registerLoader = function (loader) {
-            AssetManager.m_Loaders.push(loader);
+            AssetManager.s_Loaders.push(loader);
         };
         /**
          * A callback to be made from an asset loader when an asset is loaded
          * @param asset
          */
         AssetManager.onAssetLoaded = function (asset) {
-            AssetManager.m_LoadedAssets[asset.name] = asset;
+            AssetManager.s_LoadedAssets[asset.name] = asset;
             Weaver.Message.send(Weaver.MESSAGE_ASSET_LOADER_ASSET_LOADED + asset.name, this, asset);
         };
         /**
@@ -40,7 +40,7 @@ var Weaver;
          */
         AssetManager.loadAsset = function (assetName) {
             var extension = assetName.split('.').pop().toLowerCase();
-            for (var _i = 0, _a = AssetManager.m_Loaders; _i < _a.length; _i++) {
+            for (var _i = 0, _a = AssetManager.s_Loaders; _i < _a.length; _i++) {
                 var l = _a[_i];
                 if (l.supportedExtensions.indexOf(extension) !== -1) {
                     l.loadAsset(assetName);
@@ -54,7 +54,7 @@ var Weaver;
          * @param assetName Asset name to check
          */
         AssetManager.isAssetLoaded = function (assetName) {
-            return AssetManager.m_LoadedAssets[assetName] !== undefined;
+            return AssetManager.s_LoadedAssets[assetName] !== undefined;
         };
         /**
          * Attempts to get an asset with provided name
@@ -62,16 +62,16 @@ var Weaver;
          * @returns If found it is returned; otherwise undefined is returned
          */
         AssetManager.getAsset = function (assetName) {
-            if (AssetManager.m_LoadedAssets[assetName] !== undefined) {
-                return AssetManager.m_LoadedAssets[assetName];
+            if (AssetManager.s_LoadedAssets[assetName] !== undefined) {
+                return AssetManager.s_LoadedAssets[assetName];
             }
             else {
                 AssetManager.loadAsset(assetName);
             }
             return undefined;
         };
-        AssetManager.m_Loaders = [];
-        AssetManager.m_LoadedAssets = {};
+        AssetManager.s_Loaders = [];
+        AssetManager.s_LoadedAssets = {};
         return AssetManager;
     }());
     Weaver.AssetManager = AssetManager;
@@ -140,56 +140,53 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-    * Main game engine class
-    */
+    /** Main game engine class */
     var Engine = /** @class */ (function () {
-        /**
-         * Creates a new engine
-         */
+        /** Creates a new engine */
         function Engine() {
         }
-        /**
-         * Starts up this engine
-         */
+        /** Starts up this engine */
         Engine.prototype.start = function () {
             this.m_Canvas = Weaver.GLUtilities.initialize();
+            Weaver.AssetManager.initialize();
             Weaver.gl.clearColor(0.15, 0.15, 0.15, 1);
             this.loadShaders();
             this.m_Shader.use();
             // Load
-            this.m_Projection = Weaver.Matrix4x4.orthographic(0, this.m_Canvas.width, 0, this.m_Canvas.height, -100.0, 1000.0);
-            this.m_Sprite = new Weaver.Sprite("test");
+            this.m_Projection = Weaver.Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
+            this.m_Sprite = new Weaver.Sprite("test", "assets/textures/Checkerboard.png");
             this.m_Sprite.load();
             this.m_Sprite.position.x = 200;
+            this.m_Sprite.position.y = 100;
             this.resize();
             this.loop();
         };
-        /**
-         * Resizes the canvas to fit the window
-         */
+        /** Resizes the canvas to fit the window */
         Engine.prototype.resize = function () {
             if (this.m_Canvas !== undefined) {
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
-                //gl.viewport(-1, 1, -1, 1);
+                Weaver.gl.viewport(0, 0, Weaver.gl.canvas.width, Weaver.gl.canvas.height);
+                this.m_Projection = Weaver.Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
             }
         };
         Engine.prototype.loop = function () {
+            Weaver.MessageBus.update(0);
             Weaver.gl.clear(Weaver.gl.COLOR_BUFFER_BIT);
             // Set uniforms
-            var colorPosition = this.m_Shader.getUniformLocation("u_color");
-            Weaver.gl.uniform4f(colorPosition, 0.6, 0.2, 1, 1);
+            var colorPosition = this.m_Shader.getUniformLocation("u_tint");
+            Weaver.gl.uniform4f(colorPosition, 1, 1, 1, 1);
             var projectionPosition = this.m_Shader.getUniformLocation("u_projection");
             Weaver.gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this.m_Projection.data));
             var modelPosition = this.m_Shader.getUniformLocation("u_model");
             Weaver.gl.uniformMatrix4fv(modelPosition, false, new Float32Array(Weaver.Matrix4x4.translation(this.m_Sprite.position).data));
-            this.m_Sprite.draw();
+            this.m_Sprite.draw(this.m_Shader);
+            this.m_Sprite.position.x += 1;
             requestAnimationFrame(this.loop.bind(this));
         };
         Engine.prototype.loadShaders = function () {
-            var vertexShaderSource = "\n            attribute vec3 a_position;\n\n            uniform mat4 u_projection;\n            uniform mat4 u_model;\n\n            void main()\n            {\n                gl_Position = u_projection * u_model * vec4(a_position, 1.0);\n            }";
-            var fragmentShaderSource = "\n            precision mediump float;\n\n            uniform vec4 u_color;\n\n            void main()\n            {\n                gl_FragColor = u_color;\n            }";
+            var vertexShaderSource = "\n            attribute vec3 a_position;\n            attribute vec2 a_texCoord;\n\n            uniform mat4 u_projection;\n            uniform mat4 u_model;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_Position = u_projection * u_model * vec4(a_position, 1.0);\n                v_texCoord = a_texCoord;\n            }";
+            var fragmentShaderSource = "\n            precision mediump float;\n\n            uniform vec4 u_tint;\n            uniform sampler2D u_diffuse;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_FragColor = u_tint * texture2D(u_diffuse, v_texCoord);\n            }";
             this.m_Shader = new Weaver.Shader("basic", vertexShaderSource, fragmentShaderSource);
         };
         return Engine;
@@ -198,9 +195,7 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Responsible for setting up a WebGL rendering context
-     */
+    /** Responsible for setting up a WebGL rendering context */
     var GLUtilities = /** @class */ (function () {
         function GLUtilities() {
         }
@@ -233,18 +228,14 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Represents the information needed for a GLBuffer attribute
-     */
+    /** Represents the information needed for a GLBuffer attribute */
     var AttributeInfo = /** @class */ (function () {
         function AttributeInfo() {
         }
         return AttributeInfo;
     }());
     Weaver.AttributeInfo = AttributeInfo;
-    /**
-     * Represents a WebGL buffer
-     */
+    /** Represents a WebGL buffer */
     var GLBuffer = /** @class */ (function () {
         /**
          * Creates a new GL buffer
@@ -285,9 +276,7 @@ var Weaver;
             this.m_Stride = this.m_ElementSize * this.m_TypeSize;
             this.m_Buffer = Weaver.gl.createBuffer();
         }
-        /**
-         * Destroys this buffer
-         */
+        /** Destroys this buffer */
         GLBuffer.prototype.destroy = function () {
             Weaver.gl.deleteBuffer(this.m_Buffer);
         };
@@ -306,9 +295,7 @@ var Weaver;
                 }
             }
         };
-        /**
-         * Unbinds this buffer
-         */
+        /** Unbinds this buffer */
         GLBuffer.prototype.unbind = function () {
             for (var _i = 0, _a = this.m_Attributes; _i < _a.length; _i++) {
                 var it = _a[_i];
@@ -334,9 +321,7 @@ var Weaver;
                 this.m_Data.push(d);
             }
         };
-        /**
-         * Uploads this buffer's data to the GPU
-         */
+        /** Uploads this buffer's data to the GPU */
         GLBuffer.prototype.upload = function () {
             Weaver.gl.bindBuffer(this.m_TargerBufferType, this.m_Buffer);
             var bufferData;
@@ -365,9 +350,7 @@ var Weaver;
             }
             Weaver.gl.bufferData(this.m_TargerBufferType, bufferData, Weaver.gl.STATIC_DRAW);
         };
-        /**
-         * Draws this buffer
-         */
+        /** Draws this buffer */
         GLBuffer.prototype.draw = function () {
             if (this.m_TargerBufferType === Weaver.gl.ARRAY_BUFFER) {
                 Weaver.gl.drawArrays(this.m_Mode, 0, this.m_Data.length / this.m_ElementSize);
@@ -382,9 +365,7 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Represents a WebGL shader
-     */
+    /** Represents a WebGL shader */
     var Shader = /** @class */ (function () {
         /**
          * Creates a new shader
@@ -403,18 +384,14 @@ var Weaver;
             this.detectUniforms();
         }
         Object.defineProperty(Shader.prototype, "name", {
-            /**
-             * The name of this shader
-             */
+            /** The name of this shader */
             get: function () {
                 return this.m_Name;
             },
             enumerable: false,
             configurable: true
         });
-        /**
-         * Use this shader
-         */
+        /** Use this shader */
         Shader.prototype.use = function () {
             Weaver.gl.useProgram(this.m_Program);
         };
@@ -484,45 +461,58 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Represents a 2D sprite which is drawn on the screen
-     */
+    /** Represents a 2D sprite which is drawn on the screen */
     var Sprite = /** @class */ (function () {
         /**
          * Creates a new sprite
          * @param name Name of this sprite
+         * @param textureName Name of the texture to use with this sprite
          * @param width Width of this sprite
          * @param height Height of this sprite
          */
-        function Sprite(name, width, height) {
+        function Sprite(name, textureName, width, height) {
             if (width === void 0) { width = 100; }
             if (height === void 0) { height = 100; }
-            /**
-             * Position of this sprite
-             */
+            /** Position of this sprite */
             this.position = new Weaver.Vector3();
             this.m_Name = name;
             this.m_Width = width;
             this.m_Height = height;
+            this.m_TextureName = textureName;
+            this.m_Texture = Weaver.TextureManager.getTexture(this.m_TextureName);
         }
-        /**
-         * Performs loading logic on this sprite
-         */
+        Object.defineProperty(Sprite.prototype, "name", {
+            get: function () {
+                return this.m_Name;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Sprite.prototype.destroy = function () {
+            this.m_Buffer.destroy();
+            Weaver.TextureManager.releaseTexture(this.m_TextureName);
+        };
+        /** Performs loading logic on this sprite */
         Sprite.prototype.load = function () {
-            this.m_Buffer = new Weaver.GLBuffer(3);
+            this.m_Buffer = new Weaver.GLBuffer(5);
             var positionAttribute = new Weaver.AttributeInfo();
             positionAttribute.location = 0;
             positionAttribute.offset = 0;
             positionAttribute.size = 3;
             this.m_Buffer.addAttributeLocation(positionAttribute);
+            var texCoordAttribute = new Weaver.AttributeInfo();
+            texCoordAttribute.location = 1;
+            texCoordAttribute.offset = 3;
+            texCoordAttribute.size = 2;
+            this.m_Buffer.addAttributeLocation(texCoordAttribute);
             var vertices = [
-                // x,y,z
-                0, 0, 0,
-                0, this.m_Height, 0,
-                this.m_Width, this.m_Height, 0,
-                this.m_Width, this.m_Height, 0,
-                this.m_Width, 0, 0,
-                0, 0, 0
+                // x,y,z,   u,v
+                0, 0, 0, 0, 0,
+                0, this.m_Height, 0, 0, 1.0,
+                this.m_Width, this.m_Height, 0, 1.0, 1.0,
+                this.m_Width, this.m_Height, 0, 1.0, 1.0,
+                this.m_Width, 0, 0, 1.0, 0,
+                0, 0, 0, 0, 0
             ];
             this.m_Buffer.pushbackData(vertices);
             this.m_Buffer.upload();
@@ -534,10 +524,11 @@ var Weaver;
          */
         Sprite.prototype.update = function (time) {
         };
-        /**
-         * Draws this sprite
-         */
-        Sprite.prototype.draw = function () {
+        /** Draws this sprite */
+        Sprite.prototype.draw = function (shader) {
+            this.m_Texture.activateAndBind(0);
+            var diffuseLocation = shader.getUniformLocation("u_diffuse");
+            Weaver.gl.uniform1i(diffuseLocation, 0);
             this.m_Buffer.bind();
             this.m_Buffer.draw();
         };
@@ -547,13 +538,144 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Represents 4x4 matrix to be used for transformations
-     */
+    var LEVEL = 0;
+    var BORDER = 0;
+    var TEMP_IMAGE_DATA = new Uint8Array([255, 255, 255, 255]);
+    var Texture = /** @class */ (function () {
+        function Texture(name, width, height) {
+            if (width === void 0) { width = 1; }
+            if (height === void 0) { height = 1; }
+            this.m_IsLoaded = false;
+            this.m_Name = name;
+            this.m_Width = width;
+            this.m_Height = height;
+            this.m_Handle = Weaver.gl.createTexture();
+            Weaver.Message.subscribe(Weaver.MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Name, this);
+            this.bind();
+            Weaver.gl.texImage2D(Weaver.gl.TEXTURE_2D, LEVEL, Weaver.gl.RGBA, 1, 1, BORDER, Weaver.gl.RGBA, Weaver.gl.UNSIGNED_BYTE, TEMP_IMAGE_DATA);
+            var asset = Weaver.AssetManager.getAsset(this.name);
+            if (asset !== undefined) {
+                this.loadTextureFromAsset(asset);
+            }
+        }
+        Object.defineProperty(Texture.prototype, "name", {
+            get: function () {
+                return this.m_Name;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Texture.prototype, "isLoaded", {
+            get: function () {
+                return this.m_IsLoaded;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Texture.prototype, "width", {
+            get: function () {
+                return this.m_Width;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Texture.prototype, "height", {
+            get: function () {
+                return this.m_Height;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Texture.prototype.destroy = function () {
+            Weaver.gl.deleteTexture(this.m_Handle);
+        };
+        Texture.prototype.activateAndBind = function (textureUnit) {
+            if (textureUnit === void 0) { textureUnit = 0; }
+            Weaver.gl.activeTexture(Weaver.gl.TEXTURE0 + textureUnit);
+            this.bind();
+        };
+        Texture.prototype.bind = function () {
+            Weaver.gl.bindTexture(Weaver.gl.TEXTURE_2D, this.m_Handle);
+        };
+        Texture.prototype.unbind = function () {
+            Weaver.gl.bindTexture(Weaver.gl.TEXTURE_2D, undefined);
+        };
+        Texture.prototype.onMessage = function (message) {
+            if (message.code === Weaver.MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Name) {
+                this.loadTextureFromAsset(message.context);
+            }
+        };
+        Texture.prototype.loadTextureFromAsset = function (asset) {
+            this.m_Width = asset.width;
+            this.m_Height = asset.height;
+            this.bind();
+            Weaver.gl.texImage2D(Weaver.gl.TEXTURE_2D, LEVEL, Weaver.gl.RGBA, Weaver.gl.RGBA, Weaver.gl.UNSIGNED_BYTE, asset.data);
+            if (this.isPowerOf2()) {
+                Weaver.gl.generateMipmap(Weaver.gl.TEXTURE_2D);
+            }
+            else {
+                // Do not generate mipmap and clamp wrapping to edge
+                Weaver.gl.texParameteri(Weaver.gl.TEXTURE_2D, Weaver.gl.TEXTURE_WRAP_S, Weaver.gl.CLAMP_TO_EDGE); // u
+                Weaver.gl.texParameteri(Weaver.gl.TEXTURE_2D, Weaver.gl.TEXTURE_WRAP_T, Weaver.gl.CLAMP_TO_EDGE); // v
+                Weaver.gl.texParameteri(Weaver.gl.TEXTURE_2D, Weaver.gl.TEXTURE_MIN_FILTER, Weaver.gl.LINEAR);
+            }
+            this.m_IsLoaded = true;
+        };
+        Texture.prototype.isPowerOf2 = function () {
+            return (this.isValuePowerOf2(this.width) && this.isValuePowerOf2(this.height));
+        };
+        Texture.prototype.isValuePowerOf2 = function (value) {
+            return (value & (value - 1)) == 0;
+        };
+        return Texture;
+    }());
+    Weaver.Texture = Texture;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    var TextureReferenceNode = /** @class */ (function () {
+        function TextureReferenceNode(texture) {
+            this.referenceCount = 1;
+            this.texture = texture;
+        }
+        return TextureReferenceNode;
+    }());
+    var TextureManager = /** @class */ (function () {
+        function TextureManager() {
+        }
+        TextureManager.getTexture = function (textureName) {
+            if (TextureManager.s_Textures[textureName] === undefined) {
+                var texture = new Weaver.Texture(textureName);
+                TextureManager.s_Textures[textureName] = new TextureReferenceNode(texture);
+            }
+            else {
+                TextureManager.s_Textures[textureName].referenceCount++;
+            }
+            return TextureManager.s_Textures[textureName].texture;
+        };
+        TextureManager.releaseTexture = function (textureName) {
+            if (TextureManager.s_Textures[textureName] === undefined) {
+                console.warn("Texture named ".concat(textureName, " does not exist an cannot be released"));
+            }
+            else {
+                TextureManager.s_Textures[textureName].referenceCount--;
+                if (TextureManager.s_Textures[textureName].referenceCount < 1) {
+                    TextureManager.s_Textures[textureName].texture.destroy();
+                    TextureManager.s_Textures[textureName] = undefined;
+                    delete TextureManager.s_Textures[textureName];
+                }
+            }
+        };
+        TextureManager.s_Textures = {};
+        return TextureManager;
+    }());
+    Weaver.TextureManager = TextureManager;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /** Represents 4x4 matrix to be used for transformations */
     var Matrix4x4 = /** @class */ (function () {
-        /**
-         * Creates a new 4x4 matrix
-         */
+        /** Creates a new 4x4 matrix */
         function Matrix4x4() {
             this.m_Data = [];
             this.m_Data = [
@@ -564,18 +686,14 @@ var Weaver;
             ];
         }
         Object.defineProperty(Matrix4x4.prototype, "data", {
-            /**
-             * Returns data contained in this matrix as an array of numbers
-             */
+            /** Returns data contained in this matrix as an array of numbers */
             get: function () {
                 return this.m_Data;
             },
             enumerable: false,
             configurable: true
         });
-        /**
-         * Creates and returns an identity matrix
-         */
+        /** Creates and returns an identity matrix */
         Matrix4x4.identity = function () {
             return new Matrix4x4();
         };
@@ -612,9 +730,7 @@ var Weaver;
             m.m_Data[14] = position.z;
             return m;
         };
-        /**
-         * Returns data of this matrix as a Float32Array
-         */
+        /** Returns data of this matrix as a Float32Array */
         Matrix4x4.prototype.toFloat32Array = function () {
             return new Float32Array(this.m_Data);
         };
@@ -624,9 +740,54 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
-    /**
-     * Represents 3-component vector
-     */
+    /** Represents 2-component vector */
+    var Vector2 = /** @class */ (function () {
+        /**
+         * Creates a new vector2
+         * @param x The X component
+         * @param y The Y component
+         */
+        function Vector2(x, y) {
+            if (x === void 0) { x = 0; }
+            if (y === void 0) { y = 0; }
+            this.m_X = x;
+            this.m_Y = y;
+        }
+        Object.defineProperty(Vector2.prototype, "x", {
+            get: function () {
+                return this.m_X;
+            },
+            set: function (value) {
+                this.m_X = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Vector2.prototype, "y", {
+            get: function () {
+                return this.m_Y;
+            },
+            set: function (value) {
+                this.m_Y = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        /** Returns the data of this vector as a number array */
+        Vector2.prototype.toArray = function () {
+            return [this.m_X, this.m_Y];
+        };
+        /** Returns the data of this vector as a Float32Array */
+        Vector2.prototype.toFLoat32Array = function () {
+            return new Float32Array(this.toArray());
+        };
+        return Vector2;
+    }());
+    Weaver.Vector2 = Vector2;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /** Represents 3-component vector */
     var Vector3 = /** @class */ (function () {
         /**
          * Creates a new vector3
@@ -672,15 +833,11 @@ var Weaver;
             enumerable: false,
             configurable: true
         });
-        /**
-         * Returns the data of this vector as a number array
-         */
+        /** Returns the data of this vector as a number array */
         Vector3.prototype.toArray = function () {
             return [this.m_X, this.m_Y, this.m_Z];
         };
-        /**
-         * Returns the data of this vector as a Float32Array
-         */
+        /** Returns the data of this vector as a Float32Array */
         Vector3.prototype.toFLoat32Array = function () {
             return new Float32Array(this.toArray());
         };
@@ -765,14 +922,14 @@ var Weaver;
          * @param handler Handler to be subscribed
          */
         MessageBus.addSubscription = function (code, handler) {
-            if (MessageBus.m_Subscriptions[code] !== undefined) {
-                MessageBus.m_Subscriptions[code] = [];
+            if (MessageBus.s_Subscriptions[code] === undefined) {
+                MessageBus.s_Subscriptions[code] = [];
             }
-            if (MessageBus.m_Subscriptions[code].indexOf(handler) !== -1) {
+            if (MessageBus.s_Subscriptions[code].indexOf(handler) !== -1) {
                 console.warn("Attempting to add a duplicate handler to code: " + code + ". Subscription not added");
             }
             else {
-                MessageBus.m_Subscriptions[code].push(handler);
+                MessageBus.s_Subscriptions[code].push(handler);
             }
         };
         /**
@@ -782,13 +939,13 @@ var Weaver;
          * @returns
          */
         MessageBus.removeSubscription = function (code, handler) {
-            if (MessageBus.m_Subscriptions[code] === undefined) {
+            if (MessageBus.s_Subscriptions[code] === undefined) {
                 console.warn("Cannot unsubscribe handler from code: " + code + ". That code is not subscribed to");
                 return;
             }
-            var nodeIndex = MessageBus.m_Subscriptions[code].indexOf(handler);
+            var nodeIndex = MessageBus.s_Subscriptions[code].indexOf(handler);
             if (nodeIndex !== -1) {
-                MessageBus.m_Subscriptions[code].splice(nodeIndex, 1);
+                MessageBus.s_Subscriptions[code].splice(nodeIndex, 1);
             }
         };
         /**
@@ -797,7 +954,7 @@ var Weaver;
          */
         MessageBus.post = function (message) {
             console.log("Message posted: ", message);
-            var handlers = MessageBus.m_Subscriptions[message.code];
+            var handlers = MessageBus.s_Subscriptions[message.code];
             if (handlers === undefined) {
                 return;
             }
@@ -807,7 +964,7 @@ var Weaver;
                     h.onMessage(message);
                 }
                 else {
-                    MessageBus.m_NormalMessageQueue.push(new Weaver.MessageSubscriptionNode(message, h));
+                    MessageBus.s_NormalMessageQueue.push(new Weaver.MessageSubscriptionNode(message, h));
                 }
             }
         };
@@ -816,18 +973,18 @@ var Weaver;
          * @param time Delta time in milliseconds since the last update
          */
         MessageBus.update = function (time) {
-            if (MessageBus.m_NormalMessageQueue.length === 0) {
+            if (MessageBus.s_NormalMessageQueue.length === 0) {
                 return;
             }
-            var messageLimit = Math.min(MessageBus.m_NormalQueueMessagePerUpdate, MessageBus.m_NormalMessageQueue.length);
+            var messageLimit = Math.min(MessageBus.s_NormalQueueMessagePerUpdate, MessageBus.s_NormalMessageQueue.length);
             for (var i = 0; i < messageLimit; ++i) {
-                var node = MessageBus.m_NormalMessageQueue.pop();
+                var node = MessageBus.s_NormalMessageQueue.pop();
                 node.handler.onMessage(node.message);
             }
         };
-        MessageBus.m_Subscriptions = {};
-        MessageBus.m_NormalQueueMessagePerUpdate = 10;
-        MessageBus.m_NormalMessageQueue = [];
+        MessageBus.s_Subscriptions = {};
+        MessageBus.s_NormalQueueMessagePerUpdate = 10;
+        MessageBus.s_NormalMessageQueue = [];
         return MessageBus;
     }());
     Weaver.MessageBus = MessageBus;

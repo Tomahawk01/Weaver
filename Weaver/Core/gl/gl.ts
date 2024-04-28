@@ -1,13 +1,9 @@
 ﻿namespace Weaver {
 
-    /** 
-     * WebGL rendering context
-     */
+    /** WebGL rendering context */
     export var gl: WebGLRenderingContext;
 
-    /**
-     * Responsible for setting up a WebGL rendering context
-     */
+    /** Responsible for setting up a WebGL rendering context */
     export class GLUtilities {
         /**
          * Initializes WebGL, optionally using canvas with assigned ID if it's defined

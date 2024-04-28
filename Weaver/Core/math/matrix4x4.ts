@@ -1,15 +1,11 @@
 ﻿namespace Weaver {
 
-    /**
-     * Represents 4x4 matrix to be used for transformations
-     */
+    /** Represents 4x4 matrix to be used for transformations */
     export class Matrix4x4 {
 
         private m_Data: number[] = [];
 
-        /**
-         * Creates a new 4x4 matrix
-         */
+        /** Creates a new 4x4 matrix */
         private constructor() {
             this.m_Data = [ // identity matrix
                 1, 0, 0, 0,
@@ -19,16 +15,12 @@
             ];
         }
 
-        /**
-         * Returns data contained in this matrix as an array of numbers
-         */
+        /** Returns data contained in this matrix as an array of numbers */
         public get data(): number[] {
             return this.m_Data;
         }
 
-        /**
-         * Creates and returns an identity matrix
-         */
+        /** Creates and returns an identity matrix */
         public static identity(): Matrix4x4 {
             return new Matrix4x4();
         }
@@ -73,9 +65,7 @@
             return m;
         }
 
-        /**
-         * Returns data of this matrix as a Float32Array
-         */
+        /** Returns data of this matrix as a Float32Array */
         public toFloat32Array(): Float32Array {
             return new Float32Array(this.m_Data);
         }

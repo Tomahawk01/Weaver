@@ -3,10 +3,10 @@
     /** Represents message manager responsible for sending messages across the system */
     export class MessageBus {
 
-        private static m_Subscriptions: { [code: string]: IMessageHandler[] } = {};
+        private static s_Subscriptions: { [code: string]: IMessageHandler[] } = {};
 
-        private static m_NormalQueueMessagePerUpdate: number = 10;
-        private static m_NormalMessageQueue: MessageSubscriptionNode[] = [];
+        private static s_NormalQueueMessagePerUpdate: number = 10;
+        private static s_NormalMessageQueue: MessageSubscriptionNode[] = [];
 
         /** Constructor hidden to prevent instantiation */
         private constructor() {
@@ -18,15 +18,15 @@
          * @param handler Handler to be subscribed
          */
         public static addSubscription(code: string, handler: IMessageHandler): void {
-            if (MessageBus.m_Subscriptions[code] !== undefined) {
-                MessageBus.m_Subscriptions[code] = [];
+            if (MessageBus.s_Subscriptions[code] === undefined) {
+                MessageBus.s_Subscriptions[code] = [];
             }
 
-            if (MessageBus.m_Subscriptions[code].indexOf(handler) !== -1) {
+            if (MessageBus.s_Subscriptions[code].indexOf(handler) !== -1) {
                 console.warn("Attempting to add a duplicate handler to code: " + code + ". Subscription not added");
             }
             else {
-                MessageBus.m_Subscriptions[code].push(handler);
+                MessageBus.s_Subscriptions[code].push(handler);
             }
         }
 
@@ -37,14 +37,14 @@
          * @returns
          */
         public static removeSubscription(code: string, handler: IMessageHandler): void {
-            if (MessageBus.m_Subscriptions[code] === undefined) {
+            if (MessageBus.s_Subscriptions[code] === undefined) {
                 console.warn("Cannot unsubscribe handler from code: " + code + ". That code is not subscribed to");
                 return;
             }
 
-            let nodeIndex = MessageBus.m_Subscriptions[code].indexOf(handler);
+            let nodeIndex = MessageBus.s_Subscriptions[code].indexOf(handler);
             if (nodeIndex !== -1) {
-                MessageBus.m_Subscriptions[code].splice(nodeIndex, 1);
+                MessageBus.s_Subscriptions[code].splice(nodeIndex, 1);
             }
         }
 
@@ -54,7 +54,7 @@
          */
         public static post(message: Message): void {
             console.log("Message posted: ", message);
-            let handlers = MessageBus.m_Subscriptions[message.code];
+            let handlers = MessageBus.s_Subscriptions[message.code];
             if (handlers === undefined) {
                 return;
             }
@@ -64,7 +64,7 @@
                     h.onMessage(message);
                 }
                 else {
-                    MessageBus.m_NormalMessageQueue.push(new MessageSubscriptionNode(message, h));
+                    MessageBus.s_NormalMessageQueue.push(new MessageSubscriptionNode(message, h));
                 }
             }
         }
@@ -74,13 +74,13 @@
          * @param time Delta time in milliseconds since the last update
          */
         public static update(time: number): void {
-            if (MessageBus.m_NormalMessageQueue.length === 0) {
+            if (MessageBus.s_NormalMessageQueue.length === 0) {
                 return;
             }
 
-            let messageLimit = Math.min(MessageBus.m_NormalQueueMessagePerUpdate, MessageBus.m_NormalMessageQueue.length);
+            let messageLimit = Math.min(MessageBus.s_NormalQueueMessagePerUpdate, MessageBus.s_NormalMessageQueue.length);
             for (let i = 0; i < messageLimit; ++i) {
-                let node = MessageBus.m_NormalMessageQueue.pop();
+                let node = MessageBus.s_NormalMessageQueue.pop();
                 node.handler.onMessage(node.message);
             }
         }

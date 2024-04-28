@@ -1,8 +1,6 @@
 ﻿namespace Weaver {
 
-    /**
-     * Represents a WebGL shader
-     */
+    /** Represents a WebGL shader */
     export class Shader {
 
         private m_Name: string;
@@ -27,16 +25,12 @@
             this.detectUniforms();
         }
 
-        /**
-         * The name of this shader
-         */
+        /** The name of this shader */
         public get name(): string {
             return this.m_Name;
         }
 
-        /**
-         * Use this shader
-         */
+        /** Use this shader */
         public use(): void {
             gl.useProgram(this.m_Program);
         }
