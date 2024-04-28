@@ -7,8 +7,9 @@
 
         private m_Canvas: HTMLCanvasElement;
         private m_Shader: Shader;
+        private m_Projection: Matrix4x4;
 
-        private m_Buffer: GLBuffer;
+        private m_Sprite: Sprite;
 
         /**
          * Creates a new engine
@@ -27,9 +28,14 @@
             this.loadShaders();
             this.m_Shader.use();
 
-            this.createBuffer();
+            // Load
+            this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, 0, this.m_Canvas.height, -100.0, 1000.0);
 
-            engine.resize();
+            this.m_Sprite = new Sprite("test");
+            this.m_Sprite.load();
+            this.m_Sprite.position.x = 200;
+
+            this.resize();
             this.loop();
         }
 
@@ -41,7 +47,7 @@
                 this.m_Canvas.width = window.innerWidth;
                 this.m_Canvas.height = window.innerHeight;
 
-                gl.viewport(0, 0, this.m_Canvas.width, this.m_Canvas.height);
+                gl.viewport(-1, 1, -1, 1);
             }
         }
 
@@ -52,39 +58,27 @@
             let colorPosition = this.m_Shader.getUniformLocation("u_color");
             gl.uniform4f(colorPosition, 0.6, 0.2, 1, 1);
 
-            this.m_Buffer.bind();
-            this.m_Buffer.draw();
+            let projectionPosition = this.m_Shader.getUniformLocation("u_projection");
+            gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this.m_Projection.data));
+
+            let modelPosition = this.m_Shader.getUniformLocation("u_model");
+            gl.uniformMatrix4fv(modelPosition, false, new Float32Array(Matrix4x4.translation(this.m_Sprite.position).data));
+
+            this.m_Sprite.draw();
 
             requestAnimationFrame(this.loop.bind(this));
-        }
-
-        private createBuffer(): void {
-            this.m_Buffer = new GLBuffer(3);
-
-            let positionAttribute = new AttributeInfo();
-            positionAttribute.location = this.m_Shader.getAttributeLocation("a_position");
-            positionAttribute.offset = 0;
-            positionAttribute.size = 3;
-            this.m_Buffer.addAttributeLocation(positionAttribute);
-
-            let vertices = [
-                0, 0, 0,
-                0.5, 0, 0,
-                0.5, 1, 0
-            ];
-
-            this.m_Buffer.pushbackData(vertices);
-            this.m_Buffer.upload();
-            this.m_Buffer.unbind();
         }
 
         private loadShaders(): void {
             let vertexShaderSource = `
             attribute vec3 a_position;
 
+            uniform mat4 u_projection;
+            uniform mat4 u_model;
+
             void main()
             {
-                gl_Position = vec4(a_position, 1.0);
+                gl_Position = u_projection * u_model * vec4(a_position, 1.0);
             }`;
 
             let fragmentShaderSource = `
