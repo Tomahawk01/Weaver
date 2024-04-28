@@ -17,14 +17,16 @@ var Weaver;
          * Creates a new engine
          */
         function Engine() {
-            console.log("Instance of the engine has been created!");
         }
         /**
          * Starts up this engine
          */
         Engine.prototype.start = function () {
             this.m_Canvas = Weaver.GLUtilities.initialize();
+            engine.resize();
             Weaver.gl.clearColor(0.15, 0.15, 0.15, 1);
+            this.loadShaders();
+            this.m_Shader.use();
             this.loop();
         };
         /**
@@ -39,6 +41,11 @@ var Weaver;
         Engine.prototype.loop = function () {
             Weaver.gl.clear(Weaver.gl.COLOR_BUFFER_BIT);
             requestAnimationFrame(this.loop.bind(this));
+        };
+        Engine.prototype.loadShaders = function () {
+            var vertexShaderSource = "\n            attribute vec3 a_position;\n\n            void main()\n            {\n                gl_Position = vec4(a_position, 1.0);\n            }";
+            var fragmentShaderSource = "\n            precision mediump float;\n\n            void main()\n            {\n                gl_FragColor = vec4(1.0);\n            }";
+            this.m_Shader = new Weaver.Shader("basic", vertexShaderSource, fragmentShaderSource);
         };
         return Engine;
     }());
@@ -78,5 +85,63 @@ var Weaver;
         return GLUtilities;
     }());
     Weaver.GLUtilities = GLUtilities;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    /**
+     * Represents a WebGL shader
+     */
+    var Shader = /** @class */ (function () {
+        /**
+         * Creates a new shader
+         * @param name Name of the shader
+         * @param vertexSrc Source of vertex shader
+         * @param fragmentSrc Source of fragment shader
+         */
+        function Shader(name, vertexSrc, fragmentSrc) {
+            this.m_Name = name;
+            var vertexShader = this.loadShader(vertexSrc, Weaver.gl.VERTEX_SHADER);
+            var fragmentShader = this.loadShader(fragmentSrc, Weaver.gl.FRAGMENT_SHADER);
+            this.createProgram(vertexShader, fragmentShader);
+        }
+        Object.defineProperty(Shader.prototype, "name", {
+            /**
+             * The name of this shader
+             */
+            get: function () {
+                return this.m_Name;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        /**
+         * Use this shader
+         */
+        Shader.prototype.use = function () {
+            Weaver.gl.useProgram(this.m_Program);
+        };
+        Shader.prototype.loadShader = function (source, shaderType) {
+            var shader = Weaver.gl.createShader(shaderType);
+            Weaver.gl.shaderSource(shader, source);
+            Weaver.gl.compileShader(shader);
+            var error = Weaver.gl.getShaderInfoLog(shader);
+            if (error !== "") {
+                throw new Error("Error compiling shader '" + this.m_Name + "': " + error);
+            }
+            return shader;
+        };
+        Shader.prototype.createProgram = function (vertexShader, fragmentShader) {
+            this.m_Program = Weaver.gl.createProgram();
+            Weaver.gl.attachShader(this.m_Program, vertexShader);
+            Weaver.gl.attachShader(this.m_Program, fragmentShader);
+            Weaver.gl.linkProgram(this.m_Program);
+            var error = Weaver.gl.getProgramInfoLog(this.m_Program);
+            if (error !== "") {
+                throw new Error("Error linking shader '" + this.m_Name + "': " + error);
+            }
+        };
+        return Shader;
+    }());
+    Weaver.Shader = Shader;
 })(Weaver || (Weaver = {}));
 //# sourceMappingURL=main.js.map

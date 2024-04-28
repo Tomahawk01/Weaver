@@ -6,12 +6,12 @@
     export class Engine {
 
         private m_Canvas: HTMLCanvasElement;
+        private m_Shader: Shader;
 
         /**
          * Creates a new engine
          */
         public constructor() {
-            console.log("Instance of the engine has been created!");
         }
 
         /**
@@ -19,8 +19,12 @@
          */
         public start(): void {
             this.m_Canvas = GLUtilities.initialize();
+            engine.resize();
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
+
+            this.loadShaders();
+            this.m_Shader.use();
 
             this.loop();
         }
@@ -39,6 +43,26 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             requestAnimationFrame(this.loop.bind(this));
+        }
+
+        private loadShaders(): void {
+            let vertexShaderSource = `
+            attribute vec3 a_position;
+
+            void main()
+            {
+                gl_Position = vec4(a_position, 1.0);
+            }`;
+
+            let fragmentShaderSource = `
+            precision mediump float;
+
+            void main()
+            {
+                gl_FragColor = vec4(1.0);
+            }`;
+
+            this.m_Shader = new Shader("basic", vertexShaderSource, fragmentShaderSource);
         }
     }
 }
