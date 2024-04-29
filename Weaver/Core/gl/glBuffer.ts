@@ -88,7 +88,7 @@
                 gl.disableVertexAttribArray(it.location);
             }
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Buffer);
+            gl.bindBuffer(this.m_TargerBufferType, undefined);
         }
 
         /**
