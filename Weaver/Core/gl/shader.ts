@@ -65,9 +65,10 @@
 
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
-            let error = gl.getShaderInfoLog(shader);
-            if (error !== "") {
-                throw new Error("Error compiling shader '" + this.m_Name + "': " + error);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                var info = gl.getShaderInfoLog(shader);
+                throw new Error(`Error compiling shader '${this.m_Name}' : ${info}`);
             }
 
             return shader;
@@ -81,9 +82,9 @@
 
             gl.linkProgram(this.m_Program);
 
-            let error = gl.getProgramInfoLog(this.m_Program);
-            if (error !== "") {
-                throw new Error("Error linking shader '" + this.m_Name + "': " + error);
+            if (!gl.getProgramParameter(this.m_Program, gl.LINK_STATUS)) {
+                var info = gl.getProgramInfoLog(this.m_Program);
+                throw new Error(`Error linking shader '${this.m_Name}' : ${info}`);
             }
         }
 

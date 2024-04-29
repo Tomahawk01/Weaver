@@ -43,6 +43,16 @@
             this.m_Z = value;
         }
 
+        /** Returns a Vector3 representing the zero vector */
+        public static get zero(): Vector3 {
+            return new Vector3();
+        }
+
+        /** Returns a Vector3 representing the vector with all components set to one */
+        public static get one(): Vector3 {
+            return new Vector3(1, 1, 1);
+        }
+
         /** Returns the data of this vector as a number array */
         public toArray(): number[] {
             return [this.m_X, this.m_Y, this.m_Z];
@@ -51,6 +61,16 @@
         /** Returns the data of this vector as a Float32Array */
         public toFLoat32Array(): Float32Array {
             return new Float32Array(this.toArray());
+        }
+
+        /**
+         * Copies the components of another Vector3 into this Vector3
+         * @param vector Vector3 to copy from
+         */
+        public copyFrom(vector: Vector3): void {
+            this.m_X = vector.m_X;
+            this.m_Y = vector.m_Y;
+            this.m_Z = vector.m_Z;
         }
     }
 }
