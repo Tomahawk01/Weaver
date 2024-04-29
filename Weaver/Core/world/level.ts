@@ -14,6 +14,7 @@
         private m_Description: string;
         private m_Scene: Scene;
         private m_State: LevelState = LevelState.UNINITIALIZED;
+        private m_GlobalId: number = -1;
 
         public constructor(id: number, name: string, description: string) {
             this.m_Id = id;
@@ -38,6 +39,18 @@
             return this.m_Scene;
         }
 
+        public initialize(levelData: any): void {
+            if (levelData.entities === undefined) {
+                throw new Error("Level initialization error: entities not present");
+            }
+
+            for (let o in levelData.entities) {
+                let obj = levelData.entities[o];
+
+                this.loadEntity(obj, this.m_Scene.root);
+            }
+        }
+
         public load(): void {
             this.m_State = LevelState.LOADING;
 
@@ -47,7 +60,6 @@
         }
 
         public unload(): void {
-
         }
 
         public update(time: number): void {
@@ -63,11 +75,34 @@
         }
 
         public onActivated(): void {
-
         }
 
         public onDeactivated(): void {
+        }
 
+        private loadEntity(dataSection: any, parent: Entity): void {
+            let name: string;
+            if (dataSection.name !== undefined) {
+                name = String(dataSection.name);
+            }
+
+            this.m_GlobalId++;
+            let entity = new Entity(this.m_GlobalId, name, this.m_Scene);
+
+            if (dataSection.transform !== undefined) {
+                entity.transform.setFromJson(dataSection.transform);
+            }
+
+            if (dataSection.children !== undefined) {
+                for (let o in dataSection.children.entities) {
+                    let obj = dataSection.children[o];
+                    this.loadEntity(obj, entity);
+                }
+            }
+
+            if (parent !== undefined) {
+                parent.addChild(entity);
+            }
         }
     }
 }

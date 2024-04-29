@@ -15,6 +15,7 @@
         /** Initialize this manager */
         public static initialize(): void {
             AssetManager.s_Loaders.push(new ImageAssetLoader());
+            AssetManager.s_Loaders.push(new JsonAssetLoader());
         }
 
         /**

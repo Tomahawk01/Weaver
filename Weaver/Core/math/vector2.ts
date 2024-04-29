@@ -41,5 +41,19 @@
         public toFLoat32Array(): Float32Array {
             return new Float32Array(this.toArray());
         }
+
+        /**
+        * Sets the Vector2 components from a JSON object containing 'x' and 'y' properties
+        * @param json Json object to set the somponents from
+        */
+        public setFromJson(json: any): void {
+            if (json.x !== undefined) {
+                this.m_X = Number(json.x);
+            }
+
+            if (json.y !== undefined) {
+                this.m_Y = Number(json.y);
+            }
+        }
     }
 }

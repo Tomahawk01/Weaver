@@ -15,6 +15,7 @@
         public start(): void {
             this.m_Canvas = GLUtilities.initialize();
             AssetManager.initialize();
+            LevelManager.initialize();
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
 
@@ -24,12 +25,10 @@
             // Load materials
             MaterialManager.registerMaterial(new Material("checkerboard", "assets/textures/Checkerboard.png", Color.white()));
 
-            let levelID = LevelManager.createTestLevel();
-
             // Load
             this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
 
-            LevelManager.changeLevel(levelID);
+            LevelManager.changeLevel(0);
 
             this.resize();
             this.loop();

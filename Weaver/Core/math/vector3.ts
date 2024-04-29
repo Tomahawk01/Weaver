@@ -72,5 +72,23 @@
             this.m_Y = vector.m_Y;
             this.m_Z = vector.m_Z;
         }
+
+        /**
+         * Sets the Vector3 components from a JSON object containing 'x', 'y', and 'z' properties
+         * @param json Json object to set the somponents from
+         */
+        public setFromJson(json: any): void {
+            if (json.x !== undefined) {
+                this.m_X = Number(json.x);
+            }
+
+            if (json.y !== undefined) {
+                this.m_Y = Number(json.y);
+            }
+
+            if (json.z !== undefined) {
+                this.m_Z = Number(json.z);
+            }
+        }
     }
 }

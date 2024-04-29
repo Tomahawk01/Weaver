@@ -1,0 +1,27 @@
+{
+    "name": "TestLevel",
+    "description": "Simple test level...",
+    "id": 0,
+    "entities": [
+        {
+            "name": "parentEntity",
+            "transform": {
+                "position": {
+                    "x": 300,
+                    "y": 300
+                }
+            },
+            "children": [
+                {
+                    "name": "testEntity",
+                    "transform": {
+                        "position": {
+                            "x": 120,
+                            "y": 120
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
