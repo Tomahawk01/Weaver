@@ -7,6 +7,7 @@
         private m_Parent: Entity;
         private m_IsLoaded: boolean = false;
         private m_Scene: Scene;
+        private m_Components: BaseComponent[] = [];
 
         private m_LocalMatrix: Matrix4x4 = Matrix4x4.identity();
         private m_WorldMatrix: Matrix4x4 = Matrix4x4.identity();
@@ -65,8 +66,17 @@
             return undefined;
         }
 
+        public addComponent(component: BaseComponent): void {
+            this.m_Components.push(component);
+            component.setOwner(this);
+        }
+
         public load(): void {
             this.m_IsLoaded = true;
+
+            for (let c of this.m_Components) {
+                c.load();
+            }
 
             for (let c of this.m_Children) {
                 c.load();
@@ -74,12 +84,23 @@
         }
 
         public update(time: number): void {
+            this.m_LocalMatrix = this.transform.getTransformationMatrix();
+            this.updateWorldMatrix((this.m_Parent !== undefined) ? this.m_Parent.worldMatrix : undefined);
+
+            for (let c of this.m_Components) {
+                c.update(time);
+            }
+
             for (let c of this.m_Children) {
                 c.update(time);
             }
         }
 
         public render(shader: Shader): void {
+            for (let c of this.m_Components) {
+                c.render(shader);
+            }
+
             for (let c of this.m_Children) {
                 c.render(shader);
             }
@@ -87,6 +108,15 @@
 
         protected onAdded(scene: Scene): void {
             this.m_Scene = scene;
+        }
+
+        private updateWorldMatrix(parentWorldMatrix: Matrix4x4): void {
+            if (parentWorldMatrix !== undefined) {
+                this.m_WorldMatrix = Matrix4x4.multiply(parentWorldMatrix, this.m_LocalMatrix);
+            }
+            else {
+                this.m_WorldMatrix.copyFrom(this.m_LocalMatrix);
+            }
         }
     }
 }

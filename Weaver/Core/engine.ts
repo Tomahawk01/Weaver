@@ -7,8 +7,6 @@
         private m_BasicShader: BasicShader;
         private m_Projection: Matrix4x4;
 
-        private m_Sprite: Sprite;
-
         /** Creates a new engine */
         public constructor() {
         }
@@ -26,13 +24,12 @@
             // Load materials
             MaterialManager.registerMaterial(new Material("checkerboard", "assets/textures/Checkerboard.png", Color.white()));
 
+            let levelID = LevelManager.createTestLevel();
+
             // Load
             this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
 
-            this.m_Sprite = new Sprite("test", "checkerboard");
-            this.m_Sprite.load();
-            this.m_Sprite.position.x = 200;
-            this.m_Sprite.position.y = 100;
+            LevelManager.changeLevel(levelID);
 
             this.resize();
             this.loop();
@@ -51,14 +48,15 @@
 
         private loop(): void {
             MessageBus.update(0);
+            LevelManager.update(0);
             
             gl.clear(gl.COLOR_BUFFER_BIT);
+
+            LevelManager.render(this.m_BasicShader);
 
             // Set uniforms
             let projectionLocation = this.m_BasicShader.getUniformLocation("u_projection");
             gl.uniformMatrix4fv(projectionLocation, false, new Float32Array(this.m_Projection.data));
-
-            this.m_Sprite.draw(this.m_BasicShader);
 
             requestAnimationFrame(this.loop.bind(this));
         }

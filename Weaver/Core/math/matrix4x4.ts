@@ -66,7 +66,45 @@
         }
 
         /**
-         * Creates a 4x4 rotation matrix for rotation around z axis
+         * Creates a 4x4 rotation matrix for rotation around X axis
+         * @param angleInRadians Angle of rotation in radians
+         * @returns Rotation matrix
+         */
+        public static rotationX(angleInRadians: number): Matrix4x4 {
+            let m = new Matrix4x4();
+
+            let c = Math.cos(angleInRadians);
+            let s = Math.sin(angleInRadians);
+
+            m.m_Data[5] = c;
+            m.m_Data[6] = s;
+            m.m_Data[9] = -s;
+            m.m_Data[10] = c;
+
+            return m;
+        }
+
+        /**
+        * Creates a 4x4 rotation matrix for rotation around Y axis
+        * @param angleInRadians Angle of rotation in radians
+        * @returns Rotation matrix
+        */
+        public static rotationY(angleInRadians: number): Matrix4x4 {
+            let m = new Matrix4x4();
+
+            let c = Math.cos(angleInRadians);
+            let s = Math.sin(angleInRadians);
+
+            m.m_Data[0] = c;
+            m.m_Data[2] = -s;
+            m.m_Data[8] = s;
+            m.m_Data[10] = c;
+
+            return m;
+        }
+
+        /**
+         * Creates a 4x4 rotation matrix for rotation around Z axis
          * @param angleInRadians Angle of rotation in radians
          * @returns Rotation matrix
          */
@@ -78,15 +116,30 @@
 
             m.m_Data[0] = c;
             m.m_Data[1] = s;
-            m.m_Data[5] = -s;
-            m.m_Data[6] = c;
+            m.m_Data[4] = -s;
+            m.m_Data[5] = c;
 
             return m;
         }
 
         /**
+         * Creates a 4x4 rotation matrix for rotation around X, Y and Z axes
+         * @param xRadians Angle of rotation around the x-axis in radians
+         * @param yRadians Angle of rotation around the y-axis in radians
+         * @param zRadians Angle of rotation around the z-axis in radians
+         * @returns Rotation matrix
+         */
+        public static rotationXYZ(xRadians: number, yRadians: number, zRadians: number): Matrix4x4 {
+            let rx = Matrix4x4.rotationX(xRadians);
+            let ry = Matrix4x4.rotationY(yRadians);
+            let rz = Matrix4x4.rotationZ(zRadians);
+
+            return Matrix4x4.multiply(Matrix4x4.multiply(rz, ry), rx);
+        }
+
+        /**
          * Creates a 4x4 scaling matrix
-         * @param scale The scale vector containing scale factors for x, y and z axes
+         * @param scale The scale vector containing scale factors for X, Y and Z axes
          * @returns Scaling matrix
          */
         public static scale(scale: Vector3): Matrix4x4 {
@@ -166,6 +219,16 @@
         /** Returns data of this matrix as a Float32Array */
         public toFloat32Array(): Float32Array {
             return new Float32Array(this.m_Data);
+        }
+
+        /**
+         * Creates a copy of matrix m
+         * @param m Matrix to copy
+         */
+        public copyFrom(m: Matrix4x4): void {
+            for (let i = 0; i < 16; ++i) {
+                this.m_Data[i] = m.m_Data[i];
+            }
         }
     }
 }

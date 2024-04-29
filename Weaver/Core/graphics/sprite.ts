@@ -11,9 +11,6 @@
         private m_MaterialName: string;
         private m_Material: Material;
 
-        /** Position of this sprite */
-        public position: Vector3 = new Vector3();
-
         /**
          * Creates a new sprite
          * @param name Name of this sprite
@@ -81,9 +78,9 @@
         }
 
         /** Draws this sprite */
-        public draw(shader: Shader): void {
+        public draw(shader: Shader, model: Matrix4x4): void {
             let modelLocation = shader.getUniformLocation("u_model");
-            gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Matrix4x4.translation(this.position).data));
+            gl.uniformMatrix4fv(modelLocation, false, model.toFloat32Array());
 
             let colorLocation = shader.getUniformLocation("u_tint");
             gl.uniform4fv(colorLocation, this.m_Material.tint.toFloat32Array());
