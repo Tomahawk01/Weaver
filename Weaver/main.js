@@ -1,3 +1,18 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var engine;
 // Main entry point to the application
 window.onload = function () {
@@ -150,11 +165,13 @@ var Weaver;
             this.m_Canvas = Weaver.GLUtilities.initialize();
             Weaver.AssetManager.initialize();
             Weaver.gl.clearColor(0.15, 0.15, 0.15, 1);
-            this.loadShaders();
-            this.m_Shader.use();
+            this.m_BasicShader = new Weaver.BasicShader();
+            this.m_BasicShader.use();
+            // Load materials
+            Weaver.MaterialManager.registerMaterial(new Weaver.Material("checkerboard", "assets/textures/Checkerboard.png", Weaver.Color.white()));
             // Load
             this.m_Projection = Weaver.Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
-            this.m_Sprite = new Weaver.Sprite("test", "assets/textures/Checkerboard.png");
+            this.m_Sprite = new Weaver.Sprite("test", "checkerboard");
             this.m_Sprite.load();
             this.m_Sprite.position.x = 200;
             this.m_Sprite.position.y = 100;
@@ -174,20 +191,10 @@ var Weaver;
             Weaver.MessageBus.update(0);
             Weaver.gl.clear(Weaver.gl.COLOR_BUFFER_BIT);
             // Set uniforms
-            var colorPosition = this.m_Shader.getUniformLocation("u_tint");
-            Weaver.gl.uniform4f(colorPosition, 1, 1, 1, 1);
-            var projectionPosition = this.m_Shader.getUniformLocation("u_projection");
-            Weaver.gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this.m_Projection.data));
-            var modelPosition = this.m_Shader.getUniformLocation("u_model");
-            Weaver.gl.uniformMatrix4fv(modelPosition, false, new Float32Array(Weaver.Matrix4x4.translation(this.m_Sprite.position).data));
-            this.m_Sprite.draw(this.m_Shader);
-            this.m_Sprite.position.x += 1;
+            var projectionLocation = this.m_BasicShader.getUniformLocation("u_projection");
+            Weaver.gl.uniformMatrix4fv(projectionLocation, false, new Float32Array(this.m_Projection.data));
+            this.m_Sprite.draw(this.m_BasicShader);
             requestAnimationFrame(this.loop.bind(this));
-        };
-        Engine.prototype.loadShaders = function () {
-            var vertexShaderSource = "\n            attribute vec3 a_position;\n            attribute vec2 a_texCoord;\n\n            uniform mat4 u_projection;\n            uniform mat4 u_model;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_Position = u_projection * u_model * vec4(a_position, 1.0);\n                v_texCoord = a_texCoord;\n            }";
-            var fragmentShaderSource = "\n            precision mediump float;\n\n            uniform vec4 u_tint;\n            uniform sampler2D u_diffuse;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_FragColor = u_tint * texture2D(u_diffuse, v_texCoord);\n            }";
-            this.m_Shader = new Weaver.Shader("basic", vertexShaderSource, fragmentShaderSource);
         };
         return Engine;
     }());
@@ -370,18 +377,11 @@ var Weaver;
         /**
          * Creates a new shader
          * @param name Name of the shader
-         * @param vertexSrc Source of vertex shader
-         * @param fragmentSrc Source of fragment shader
          */
-        function Shader(name, vertexSrc, fragmentSrc) {
+        function Shader(name) {
             this.m_Attributes = {};
             this.m_Uniforms = {};
             this.m_Name = name;
-            var vertexShader = this.loadShader(vertexSrc, Weaver.gl.VERTEX_SHADER);
-            var fragmentShader = this.loadShader(fragmentSrc, Weaver.gl.FRAGMENT_SHADER);
-            this.createProgram(vertexShader, fragmentShader);
-            this.detectAttributes();
-            this.detectUniforms();
         }
         Object.defineProperty(Shader.prototype, "name", {
             /** The name of this shader */
@@ -414,6 +414,13 @@ var Weaver;
                 throw new Error("Unable to find uniform named '".concat(name, "' in shader named '").concat(this.m_Name, "'"));
             }
             return this.m_Uniforms[name];
+        };
+        Shader.prototype.load = function (vertexSrc, fragmentSrc) {
+            var vertexShader = this.loadShader(vertexSrc, Weaver.gl.VERTEX_SHADER);
+            var fragmentShader = this.loadShader(fragmentSrc, Weaver.gl.FRAGMENT_SHADER);
+            this.createProgram(vertexShader, fragmentShader);
+            this.detectAttributes();
+            this.detectUniforms();
         };
         Shader.prototype.loadShader = function (source, shaderType) {
             var shader = Weaver.gl.createShader(shaderType);
@@ -461,16 +468,244 @@ var Weaver;
 })(Weaver || (Weaver = {}));
 var Weaver;
 (function (Weaver) {
+    var BasicShader = /** @class */ (function (_super) {
+        __extends(BasicShader, _super);
+        function BasicShader() {
+            var _this = _super.call(this, "basic") || this;
+            _this.load(_this.getVertexSource(), _this.getFragmentSource());
+            return _this;
+        }
+        BasicShader.prototype.getVertexSource = function () {
+            return "\n            attribute vec3 a_position;\n            attribute vec2 a_texCoord;\n\n            uniform mat4 u_projection;\n            uniform mat4 u_model;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_Position = u_projection * u_model * vec4(a_position, 1.0);\n                v_texCoord = a_texCoord;\n            }";
+        };
+        BasicShader.prototype.getFragmentSource = function () {
+            return "\n            precision mediump float;\n\n            uniform vec4 u_tint;\n            uniform sampler2D u_diffuse;\n\n            varying vec2 v_texCoord;\n\n            void main()\n            {\n                gl_FragColor = u_tint * texture2D(u_diffuse, v_texCoord);\n            }";
+        };
+        return BasicShader;
+    }(Weaver.Shader));
+    Weaver.BasicShader = BasicShader;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    var Color = /** @class */ (function () {
+        function Color(r, g, b, a) {
+            if (r === void 0) { r = 255; }
+            if (g === void 0) { g = 255; }
+            if (b === void 0) { b = 255; }
+            if (a === void 0) { a = 255; }
+            this.m_R = r;
+            this.m_G = g;
+            this.m_B = b;
+            this.m_A = a;
+        }
+        Object.defineProperty(Color.prototype, "r", {
+            get: function () {
+                return this.m_R;
+            },
+            set: function (value) {
+                this.m_R = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "rFloat", {
+            get: function () {
+                return this.m_R / 255.0;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "g", {
+            get: function () {
+                return this.m_G;
+            },
+            set: function (value) {
+                this.m_G = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "gFloat", {
+            get: function () {
+                return this.m_G / 255.0;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "b", {
+            get: function () {
+                return this.m_B;
+            },
+            set: function (value) {
+                this.m_B = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "bFloat", {
+            get: function () {
+                return this.m_B / 255.0;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "a", {
+            get: function () {
+                return this.m_A;
+            },
+            set: function (value) {
+                this.m_A = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Color.prototype, "aFloat", {
+            get: function () {
+                return this.m_A / 255.0;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Color.prototype.toArray = function () {
+            return [this.m_R, this.m_G, this.m_B, this.m_A];
+        };
+        Color.prototype.toFloatArray = function () {
+            return [this.m_R / 255, this.m_G / 255, this.m_B / 255, this.m_A / 255];
+        };
+        Color.prototype.toFloat32Array = function () {
+            return new Float32Array(this.toFloatArray());
+        };
+        Color.white = function () {
+            return new Color(255, 255, 255, 255);
+        };
+        Color.black = function () {
+            return new Color(0, 0, 0, 255);
+        };
+        Color.red = function () {
+            return new Color(255, 0, 0, 255);
+        };
+        Color.green = function () {
+            return new Color(0, 255, 0, 255);
+        };
+        Color.blue = function () {
+            return new Color(0, 0, 255, 255);
+        };
+        return Color;
+    }());
+    Weaver.Color = Color;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    var Material = /** @class */ (function () {
+        function Material(name, diffuseTextureName, tint) {
+            this.m_Name = name;
+            this.m_DiffuseTextureName = diffuseTextureName;
+            this.m_Tint = tint;
+            if (this.m_DiffuseTextureName !== undefined) {
+                this.m_DiffuseTexture = Weaver.TextureManager.getTexture(this.m_DiffuseTextureName);
+            }
+        }
+        Object.defineProperty(Material.prototype, "name", {
+            get: function () {
+                return this.m_Name;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Material.prototype, "diffuseTextureName", {
+            get: function () {
+                return this.m_DiffuseTextureName;
+            },
+            set: function (value) {
+                if (this.m_DiffuseTexture !== undefined) {
+                    Weaver.TextureManager.releaseTexture(this.m_DiffuseTextureName);
+                }
+                this.m_DiffuseTextureName = value;
+                if (this.m_DiffuseTextureName !== undefined) {
+                    this.m_DiffuseTexture = Weaver.TextureManager.getTexture(this.m_DiffuseTextureName);
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Material.prototype, "diffuseTexture", {
+            get: function () {
+                return this.m_DiffuseTexture;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Material.prototype, "tint", {
+            get: function () {
+                return this.m_Tint;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Material.prototype.destroy = function () {
+            Weaver.TextureManager.releaseTexture(this.m_DiffuseTextureName);
+            this.m_DiffuseTexture = undefined;
+        };
+        return Material;
+    }());
+    Weaver.Material = Material;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
+    var MaterialReferenceNode = /** @class */ (function () {
+        function MaterialReferenceNode(material) {
+            this.referenceCount = 1;
+            this.material = material;
+        }
+        return MaterialReferenceNode;
+    }());
+    var MaterialManager = /** @class */ (function () {
+        function MaterialManager() {
+        }
+        MaterialManager.registerMaterial = function (material) {
+            if (MaterialManager.s_Materials[material.name] === undefined) {
+                MaterialManager.s_Materials[material.name] = new MaterialReferenceNode(material);
+            }
+        };
+        MaterialManager.getMaterial = function (materialName) {
+            if (MaterialManager.s_Materials[materialName] === undefined) {
+                return undefined;
+            }
+            else {
+                MaterialManager.s_Materials[materialName].referenceCount++;
+                return MaterialManager.s_Materials[materialName].material;
+            }
+        };
+        MaterialManager.releaseMaterial = function (materialName) {
+            if (MaterialManager.s_Materials[materialName] === undefined) {
+                console.warn("Cannot release a material which has not been registered");
+            }
+            else {
+                MaterialManager.s_Materials[materialName].referenceCount--;
+                if (MaterialManager.s_Materials[materialName].referenceCount < 1) {
+                    MaterialManager.s_Materials[materialName].material.destroy();
+                    MaterialManager.s_Materials[materialName].material = undefined;
+                    delete MaterialManager.s_Materials[materialName];
+                }
+            }
+        };
+        MaterialManager.s_Materials = {};
+        return MaterialManager;
+    }());
+    Weaver.MaterialManager = MaterialManager;
+})(Weaver || (Weaver = {}));
+var Weaver;
+(function (Weaver) {
     /** Represents a 2D sprite which is drawn on the screen */
     var Sprite = /** @class */ (function () {
         /**
          * Creates a new sprite
          * @param name Name of this sprite
-         * @param textureName Name of the texture to use with this sprite
+         * @param materialName Name of the material to use with this sprite
          * @param width Width of this sprite
          * @param height Height of this sprite
          */
-        function Sprite(name, textureName, width, height) {
+        function Sprite(name, materialName, width, height) {
             if (width === void 0) { width = 100; }
             if (height === void 0) { height = 100; }
             /** Position of this sprite */
@@ -478,8 +713,8 @@ var Weaver;
             this.m_Name = name;
             this.m_Width = width;
             this.m_Height = height;
-            this.m_TextureName = textureName;
-            this.m_Texture = Weaver.TextureManager.getTexture(this.m_TextureName);
+            this.m_MaterialName = materialName;
+            this.m_Material = Weaver.MaterialManager.getMaterial(this.m_MaterialName);
         }
         Object.defineProperty(Sprite.prototype, "name", {
             get: function () {
@@ -490,7 +725,9 @@ var Weaver;
         });
         Sprite.prototype.destroy = function () {
             this.m_Buffer.destroy();
-            Weaver.TextureManager.releaseTexture(this.m_TextureName);
+            Weaver.MaterialManager.releaseMaterial(this.m_MaterialName);
+            this.m_Material = undefined;
+            this.m_MaterialName = undefined;
         };
         /** Performs loading logic on this sprite */
         Sprite.prototype.load = function () {
@@ -526,9 +763,15 @@ var Weaver;
         };
         /** Draws this sprite */
         Sprite.prototype.draw = function (shader) {
-            this.m_Texture.activateAndBind(0);
-            var diffuseLocation = shader.getUniformLocation("u_diffuse");
-            Weaver.gl.uniform1i(diffuseLocation, 0);
+            var modelLocation = shader.getUniformLocation("u_model");
+            Weaver.gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Weaver.Matrix4x4.translation(this.position).data));
+            var colorLocation = shader.getUniformLocation("u_tint");
+            Weaver.gl.uniform4fv(colorLocation, this.m_Material.tint.toFloat32Array());
+            if (this.m_Material.diffuseTexture !== undefined) {
+                this.m_Material.diffuseTexture.activateAndBind(0);
+                var diffuseLocation = shader.getUniformLocation("u_diffuse");
+                Weaver.gl.uniform1i(diffuseLocation, 0);
+            }
             this.m_Buffer.bind();
             this.m_Buffer.draw();
         };

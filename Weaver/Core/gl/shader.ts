@@ -1,7 +1,7 @@
 ﻿namespace Weaver {
 
     /** Represents a WebGL shader */
-    export class Shader {
+    export abstract class Shader {
 
         private m_Name: string;
         private m_Program: WebGLProgram;
@@ -11,18 +11,9 @@
         /**
          * Creates a new shader
          * @param name Name of the shader
-         * @param vertexSrc Source of vertex shader
-         * @param fragmentSrc Source of fragment shader
          */
-        public constructor(name: string, vertexSrc: string, fragmentSrc: string) {
+        public constructor(name: string) {
             this.m_Name = name;
-            let vertexShader = this.loadShader(vertexSrc, gl.VERTEX_SHADER);
-            let fragmentShader = this.loadShader(fragmentSrc, gl.FRAGMENT_SHADER);
-
-            this.createProgram(vertexShader, fragmentShader);
-
-            this.detectAttributes();
-            this.detectUniforms();
         }
 
         /** The name of this shader */
@@ -57,6 +48,16 @@
             }
 
             return this.m_Uniforms[name];
+        }
+
+        protected load(vertexSrc: string, fragmentSrc: string): void {
+            let vertexShader = this.loadShader(vertexSrc, gl.VERTEX_SHADER);
+            let fragmentShader = this.loadShader(fragmentSrc, gl.FRAGMENT_SHADER);
+
+            this.createProgram(vertexShader, fragmentShader);
+
+            this.detectAttributes();
+            this.detectUniforms();
         }
 
         private loadShader(source: string, shaderType: number): WebGLShader {

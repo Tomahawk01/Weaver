@@ -106,6 +106,10 @@
     <TypeScriptCompile Include="Core\gl\gl.ts" />
     <TypeScriptCompile Include="Core\gl\glBuffer.ts" />
     <TypeScriptCompile Include="Core\gl\shader.ts" />
+    <TypeScriptCompile Include="Core\gl\shaders\basicShader.ts" />
+    <TypeScriptCompile Include="Core\graphics\color.ts" />
+    <TypeScriptCompile Include="Core\graphics\material.ts" />
+    <TypeScriptCompile Include="Core\graphics\materialManager.ts" />
     <TypeScriptCompile Include="Core\graphics\sprite.ts" />
     <TypeScriptCompile Include="Core\graphics\texture.ts" />
     <TypeScriptCompile Include="Core\graphics\textureManager.ts" />
