@@ -90,5 +90,53 @@
                 this.m_Z = Number(json.z);
             }
         }
+
+        /**
+         * Adds the provided vector to this vector and returns the result
+         * @param v Vector3 to add
+         */
+        public add(v: Vector3): Vector3 {
+            this.m_X += v.m_X;
+            this.m_Y += v.m_Y;
+            this.m_Z += v.m_Z;
+
+            return this;
+        }
+
+        /**
+         * Subtracts the provided vector from this vector and returns the result
+         * @param v Vector3 to subtract
+         */
+        public subtract(v: Vector3): Vector3 {
+            this.m_X -= v.m_X;
+            this.m_Y -= v.m_Y;
+            this.m_Z -= v.m_Z;
+
+            return this;
+        }
+
+        /**
+         * Multiplies this vector by the provided vector and returns the result
+         * @param v Vector3 to multiply by
+         */
+        public multiply(v: Vector3): Vector3 {
+            this.m_X *= v.m_X;
+            this.m_Y *= v.m_Y;
+            this.m_Z *= v.m_Z;
+
+            return this;
+        }
+
+        /**
+         * Divides this vector by the provided vector and returns the result
+         * @param v Vector3 to divide by
+         */
+        public divide(v: Vector3): Vector3 {
+            this.m_X /= v.m_X;
+            this.m_Y /= v.m_Y;
+            this.m_Z /= v.m_Z;
+
+            return this;
+        }
     }
 }

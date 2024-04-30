@@ -101,6 +101,14 @@
                 }
             }
 
+            if (dataSection.behaviors !== undefined) {
+                for (let b in dataSection.behaviors) {
+                    let data = dataSection.behaviors[b];
+                    let behavior = BehaviorManager.extractBehavior(data);
+                    entity.addBehavior(behavior);
+                }
+            }
+
             if (dataSection.children !== undefined) {
                 for (let o in dataSection.children) {
                     let obj = dataSection.children[o];

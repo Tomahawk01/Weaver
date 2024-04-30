@@ -8,6 +8,7 @@
         private m_IsLoaded: boolean = false;
         private m_Scene: Scene;
         private m_Components: IComponent[] = [];
+        private m_Behaviors: IBehavior[] = [];
 
         private m_LocalMatrix: Matrix4x4 = Matrix4x4.identity();
         private m_WorldMatrix: Matrix4x4 = Matrix4x4.identity();
@@ -71,6 +72,11 @@
             component.setOwner(this);
         }
 
+        public addBehavior(behavior: IBehavior): void {
+            this.m_Behaviors.push(behavior);
+            behavior.setOwner(this);
+        }
+
         public load(): void {
             this.m_IsLoaded = true;
 
@@ -89,6 +95,10 @@
 
             for (let c of this.m_Components) {
                 c.update(time);
+            }
+
+            for (let b of this.m_Behaviors) {
+                b.update(time);
             }
 
             for (let c of this.m_Children) {
