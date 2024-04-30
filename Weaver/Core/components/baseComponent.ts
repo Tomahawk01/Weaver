@@ -1,12 +1,15 @@
 ﻿namespace Weaver {
 
-    export abstract class BaseComponent {
+    export abstract class BaseComponent implements IComponent {
 
         protected m_Owner: Entity;
+        protected m_Data: IComponentData;
 
         public name: string;
 
-        public constructor(name: string) {
+        public constructor(data: IComponentData) {
+            this.m_Data = data;
+            this.name = data.name;
         }
 
         public get owner(): Entity {

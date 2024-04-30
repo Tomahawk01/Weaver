@@ -93,8 +93,16 @@
                 entity.transform.setFromJson(dataSection.transform);
             }
 
+            if (dataSection.components !== undefined) {
+                for (let c in dataSection.components) {
+                    let data = dataSection.components[c];
+                    let component = ComponentManager.extractComponent(data);
+                    entity.addComponent(component);
+                }
+            }
+
             if (dataSection.children !== undefined) {
-                for (let o in dataSection.children.entities) {
+                for (let o in dataSection.children) {
                     let obj = dataSection.children[o];
                     this.loadEntity(obj, entity);
                 }

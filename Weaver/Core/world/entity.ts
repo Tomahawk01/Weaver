@@ -7,7 +7,7 @@
         private m_Parent: Entity;
         private m_IsLoaded: boolean = false;
         private m_Scene: Scene;
-        private m_Components: BaseComponent[] = [];
+        private m_Components: IComponent[] = [];
 
         private m_LocalMatrix: Matrix4x4 = Matrix4x4.identity();
         private m_WorldMatrix: Matrix4x4 = Matrix4x4.identity();
@@ -66,7 +66,7 @@
             return undefined;
         }
 
-        public addComponent(component: BaseComponent): void {
+        public addComponent(component: IComponent): void {
             this.m_Components.push(component);
             component.setOwner(this);
         }

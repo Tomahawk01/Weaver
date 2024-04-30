@@ -52,13 +52,15 @@
         }
 
         public onMessage(message: Message): void {
-            if (message.code.indexOf(MESSAGE_ASSET_LOADER_ASSET_LOADED)) {
+            if (message.code.indexOf(MESSAGE_ASSET_LOADER_ASSET_LOADED) !== -1) {
+                console.log("Level loaded:" + message.code);
                 let asset = message.context as JsonAsset;
                 LevelManager.loadLevel(asset);
             }
         }
 
         private static loadLevel(asset: JsonAsset): void {
+            console.log("Loading level: " + asset.name);
             let levelData = asset.data;
             let levelId: number;
 
