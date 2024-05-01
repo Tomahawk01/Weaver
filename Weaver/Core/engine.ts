@@ -1,7 +1,7 @@
 ﻿namespace Weaver {
 
     /** Main game engine class */
-    export class Engine {
+    export class Engine implements IMessageHandler {
 
         private m_Canvas: HTMLCanvasElement;
         private m_BasicShader: BasicShader;
@@ -16,7 +16,10 @@
         public start(): void {
             this.m_Canvas = GLUtilities.initialize();
             AssetManager.initialize();
+            InputManager.initialize();
             LevelManager.initialize();
+
+            Message.subscribe("MOUSE_UP", this);
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
             gl.enable(gl.BLEND);
@@ -46,6 +49,13 @@
 
                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
                 this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
+            }
+        }
+
+        public onMessage(message: Message): void {
+            if (message.code === "MOUSE_UP") {
+                let context = message.context as MouseContext;
+                document.title = `Pos: [${context.position.x},${context.position.y}]`;
             }
         }
 
