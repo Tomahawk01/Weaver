@@ -116,6 +116,7 @@
     <TypeScriptCompile Include="Core\assets\IAssetLoader.ts" />
     <TypeScriptCompile Include="Core\assets\imageAssetLoader.ts" />
     <TypeScriptCompile Include="Core\assets\jsonAssetLoader.ts" />
+    <TypeScriptCompile Include="Core\audio\audioManager.ts" />
     <TypeScriptCompile Include="Core\behaviors\baseBehavior.ts" />
     <TypeScriptCompile Include="Core\behaviors\behaviorManager.ts" />
     <TypeScriptCompile Include="Core\behaviors\IBehavior.ts" />

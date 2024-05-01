@@ -32,6 +32,8 @@
             MaterialManager.registerMaterial(new Material("checkerboard", "assets/textures/Checkerboard.png", Color.white()));
             MaterialManager.registerMaterial(new Material("bird", "assets/textures/Bird.png", Color.white()));
 
+            AudioManager.loadSoundFile("flap", "assets/sounds/swing.wav", false);
+
             // Load
             this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
 
@@ -56,6 +58,8 @@
             if (message.code === "MOUSE_UP") {
                 let context = message.context as MouseContext;
                 document.title = `Pos: [${context.position.x},${context.position.y}]`;
+
+                AudioManager.playSound("flap");
             }
         }
 
