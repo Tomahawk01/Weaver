@@ -32,6 +32,25 @@
             this.m_Y = value;
         }
 
+        /** Returns a Vector2 representing the zero vector */
+        public static get zero(): Vector2 {
+            return new Vector2();
+        }
+
+        /** Returns a Vector2 representing the vector with all components set to one */
+        public static get one(): Vector2 {
+            return new Vector2(1, 1);
+        }
+
+        /**
+         * Copies the components of another Vector2 into this Vector2
+         * @param v Vector to copy from
+         */
+        public copyFrom(v: Vector2): void {
+            this.m_X = v.m_X;
+            this.m_Y = v.m_Y;
+        }
+
         /** Returns the data of this vector as a number array */
         public toArray(): number[] {
             return [this.m_X, this.m_Y];

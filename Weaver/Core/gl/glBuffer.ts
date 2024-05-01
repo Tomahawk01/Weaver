@@ -7,7 +7,7 @@
         /** Size (number of elements) in this attribute (i.e Vector3 = 3) */
         public size: number;
         /** Number of elements from the beginning of the buffer */
-        public offset: number;
+        public offset: number = 0;
     }
 
     /** Represents a WebGL buffer */
@@ -18,7 +18,7 @@
         private m_Stride: number;
         private m_Buffer: WebGLBuffer;
 
-        private m_TargerBufferType: number;
+        private m_TargetBufferType: number;
         private m_DataType: number;
         private m_Mode: number;
         private m_TypeSize: number;
@@ -28,15 +28,14 @@
 
         /**
          * Creates a new GL buffer
-         * @param elementSize Size of each element in this buffer
          * @param dataType Data type of this buffer. Default: gl.FLOAT
          * @param targetBufferType Buffer target type. Can be either gl.ARRAY_BUFFER or gl.ELEMENT_ARRAY_BUFFER. Default: gl.ARRAY_BUFFER
          * @param mode Drawing mode of this buffer. Can be either gl.TRIANGLES or gl.LINES. Default: gl.TRIANGLES
          */
-        public constructor(elementSize: number, dataType: number = gl.FLOAT, targetBufferType: number = gl.ARRAY_BUFFER, mode: number = gl.TRIANGLES) {
-            this.m_ElementSize = elementSize;
+        public constructor(dataType: number = gl.FLOAT, targetBufferType: number = gl.ARRAY_BUFFER, mode: number = gl.TRIANGLES) {
+            this.m_ElementSize = 0;
             this.m_DataType = dataType;
-            this.m_TargerBufferType = targetBufferType;
+            this.m_TargetBufferType = targetBufferType;
             this.m_Mode = mode;
 
             // Determine byte size
@@ -58,7 +57,6 @@
                     throw new Error("Unrecognized data type: " + dataType.toString());
             }
 
-            this.m_Stride = this.m_ElementSize * this.m_TypeSize;
             this.m_Buffer = gl.createBuffer();
         }
 
@@ -72,7 +70,7 @@
          * @param normalized Indicates if the data should be normalized. Default: false
          */
         public bind(normalized: boolean = false): void {
-            gl.bindBuffer(this.m_TargerBufferType, this.m_Buffer);
+            gl.bindBuffer(this.m_TargetBufferType, this.m_Buffer);
 
             if (this.m_HasAttributeLocation) {
                 for (let it of this.m_Attributes) {
@@ -88,7 +86,7 @@
                 gl.disableVertexAttribArray(it.location);
             }
 
-            gl.bindBuffer(this.m_TargerBufferType, undefined);
+            gl.bindBuffer(this.m_TargetBufferType, undefined);
         }
 
         /**
@@ -97,12 +95,24 @@
          */
         public addAttributeLocation(info: AttributeInfo): void {
             this.m_HasAttributeLocation = true;
+            info.offset = this.m_ElementSize;
             this.m_Attributes.push(info);
-        } 
+            this.m_ElementSize += info.size;
+            this.m_Stride = this.m_ElementSize * this.m_TypeSize;
+        }
+
+        /**
+         * Replaces the current data in this buffer with the provided data
+         * @param data Data to be loaded in this buffer
+         */
+        public setData(data: number[]): void {
+            this.clearData();
+            this.pushbackData(data);
+        }
 
         /**
          * Adds data to this buffer
-         * @param data
+         * @param data An array of numbers representing the data to append
          */
         public pushbackData(data: number[]): void {
             for (let d of data) {
@@ -110,9 +120,14 @@
             }
         }
 
+        /** Clears out all data in this buffer */
+        public clearData(): void {
+            this.m_Data.length = 0;
+        }
+
         /** Uploads this buffer's data to the GPU */
         public upload(): void {
-            gl.bindBuffer(this.m_TargerBufferType, this.m_Buffer);
+            gl.bindBuffer(this.m_TargetBufferType, this.m_Buffer);
 
             let bufferData: ArrayBuffer;
             switch (this.m_DataType) {
@@ -139,15 +154,15 @@
                     break;
             }
 
-            gl.bufferData(this.m_TargerBufferType, bufferData, gl.STATIC_DRAW);
+            gl.bufferData(this.m_TargetBufferType, bufferData, gl.STATIC_DRAW);
         }
 
         /** Draws this buffer */
         public draw(): void {
-            if (this.m_TargerBufferType === gl.ARRAY_BUFFER) {
+            if (this.m_TargetBufferType === gl.ARRAY_BUFFER) {
                 gl.drawArrays(this.m_Mode, 0, this.m_Data.length / this.m_ElementSize);
             }
-            else if (this.m_TargerBufferType === gl.ELEMENT_ARRAY_BUFFER) {
+            else if (this.m_TargetBufferType === gl.ELEMENT_ARRAY_BUFFER) {
                 gl.drawElements(this.m_Mode, this.m_Data.length, this.m_DataType, 0);
             }
         }

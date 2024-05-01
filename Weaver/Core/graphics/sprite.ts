@@ -3,13 +3,14 @@
     /** Represents a 2D sprite which is drawn on the screen */
     export class Sprite {
 
-        private m_Name: string;
-        private m_Width: number;
-        private m_Height: number;
+        protected m_Name: string;
+        protected m_Width: number;
+        protected m_Height: number;
 
-        private m_Buffer: GLBuffer;
-        private m_MaterialName: string;
-        private m_Material: Material;
+        protected m_Buffer: GLBuffer;
+        protected m_MaterialName: string;
+        protected m_Material: Material;
+        protected m_Vertices: Vertex[] = [];
 
         /**
          * Creates a new sprite
@@ -39,32 +40,33 @@
 
         /** Performs loading logic on this sprite */
         public load(): void {
-            this.m_Buffer = new GLBuffer(5);
+            this.m_Buffer = new GLBuffer();
 
             let positionAttribute = new AttributeInfo();
             positionAttribute.location = 0;
-            positionAttribute.offset = 0;
             positionAttribute.size = 3;
             this.m_Buffer.addAttributeLocation(positionAttribute);
 
             let texCoordAttribute = new AttributeInfo();
             texCoordAttribute.location = 1;
-            texCoordAttribute.offset = 3;
             texCoordAttribute.size = 2;
             this.m_Buffer.addAttributeLocation(texCoordAttribute);
 
-            let vertices = [
+            this.m_Vertices = [
                 // x,y,z,   u,v
-                0, 0, 0, 0, 0,
-                0, this.m_Height, 0, 0, 1.0,
-                this.m_Width, this.m_Height, 0, 1.0, 1.0,
+                new Vertex(0, 0, 0, 0, 0),
+                new Vertex(0, this.m_Height, 0, 0, 1.0),
+                new Vertex(this.m_Width, this.m_Height, 0, 1.0, 1.0),
 
-                this.m_Width, this.m_Height, 0, 1.0, 1.0,
-                this.m_Width, 0, 0, 1.0, 0,
-                0, 0, 0, 0, 0
+                new Vertex(this.m_Width, this.m_Height, 0, 1.0, 1.0),
+                new Vertex(this.m_Width, 0, 0, 1.0, 0),
+                new Vertex(0, 0, 0, 0, 0)
             ];
 
-            this.m_Buffer.pushbackData(vertices);
+            for (let v of this.m_Vertices) {
+                this.m_Buffer.pushbackData(v.toArray());
+            }
+
             this.m_Buffer.upload();
             this.m_Buffer.unbind();
         }

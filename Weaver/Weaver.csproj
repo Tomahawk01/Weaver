@@ -55,6 +55,19 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptModuleKind>AMD</TypeScriptModuleKind>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile>main.js</TypeScriptOutFile>
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -109,6 +122,7 @@
     <TypeScriptCompile Include="Core\behaviors\IBehaviorBuilder.ts" />
     <TypeScriptCompile Include="Core\behaviors\IBehaviorData.ts" />
     <TypeScriptCompile Include="Core\behaviors\rotationBehavior.ts" />
+    <TypeScriptCompile Include="Core\components\animatedSpriteComponent.ts" />
     <TypeScriptCompile Include="Core\components\baseComponent.ts" />
     <TypeScriptCompile Include="Core\components\componentManager.ts" />
     <TypeScriptCompile Include="Core\components\IComponent.ts" />
@@ -120,12 +134,14 @@
     <TypeScriptCompile Include="Core\gl\glBuffer.ts" />
     <TypeScriptCompile Include="Core\gl\shader.ts" />
     <TypeScriptCompile Include="Core\gl\shaders\basicShader.ts" />
+    <TypeScriptCompile Include="Core\graphics\animatedSprite.ts" />
     <TypeScriptCompile Include="Core\graphics\color.ts" />
     <TypeScriptCompile Include="Core\graphics\material.ts" />
     <TypeScriptCompile Include="Core\graphics\materialManager.ts" />
     <TypeScriptCompile Include="Core\graphics\sprite.ts" />
     <TypeScriptCompile Include="Core\graphics\texture.ts" />
     <TypeScriptCompile Include="Core\graphics\textureManager.ts" />
+    <TypeScriptCompile Include="Core\graphics\vertex.ts" />
     <TypeScriptCompile Include="Core\math\matrix4x4.ts" />
     <TypeScriptCompile Include="Core\math\transform.ts" />
     <TypeScriptCompile Include="Core\math\vector2.ts" />

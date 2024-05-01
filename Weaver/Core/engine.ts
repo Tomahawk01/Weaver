@@ -6,6 +6,7 @@
         private m_Canvas: HTMLCanvasElement;
         private m_BasicShader: BasicShader;
         private m_Projection: Matrix4x4;
+        private m_PreviousTime: number;
 
         /** Creates a new engine */
         public constructor() {
@@ -18,12 +19,15 @@
             LevelManager.initialize();
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             this.m_BasicShader = new BasicShader();
             this.m_BasicShader.use();
 
             // Load materials
             MaterialManager.registerMaterial(new Material("checkerboard", "assets/textures/Checkerboard.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("bird", "assets/textures/Bird.png", Color.white()));
 
             // Load
             this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
@@ -46,9 +50,19 @@
         }
 
         private loop(): void {
-            MessageBus.update(0);
-            LevelManager.update(0);
-            
+            this.update();
+            this.render();
+        }
+
+        private update(): void {
+            let delta = performance.now() - this.m_PreviousTime;
+            MessageBus.update(delta);
+            LevelManager.update(delta);
+
+            this.m_PreviousTime = performance.now();
+        }
+
+        private render(): void {
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             LevelManager.render(this.m_BasicShader);
