@@ -10,9 +10,14 @@ namespace Weaver {
         public frameHeight: number;
         public frameCount: number;
         public frameSequence: number[] = [];
+        public autoPlay: boolean = true;
 
         public setFromJson(json: any): void {
             super.setFromJson(json);
+
+            if (json.autoPlay !== undefined) {
+                this.autoPlay = Boolean(json.autoPlay);
+            }
 
             if (json.frameWidth === undefined) {
                 throw new Error("AnimatedSpriteComponentData requires 'frameWidth' to be defined");
@@ -59,16 +64,31 @@ namespace Weaver {
 
     export class AnimatedSpriteComponent extends BaseComponent {
 
+        private m_AutoPlay: boolean;
         private m_Sprite: AnimatedSprite;
 
         public constructor(data: AnimatedSpriteComponentData) {
             super(data);
 
+            this.m_AutoPlay = data.autoPlay;
             this.m_Sprite = new AnimatedSprite(this.name, data.materialName, data.frameWidth, data.frameHeight, data.frameWidth, data.frameHeight, data.frameCount, data.frameSequence);
+            if (!data.origin.equals(Vector3.zero)) {
+                this.m_Sprite.origin.copyFrom(data.origin);
+            }
+        }
+
+        public isPlaying(): boolean {
+            return this.m_Sprite.isPlaying;
         }
 
         public load(): void {
             this.m_Sprite.load();
+        }
+
+        public updateReady(): void {
+            if (!this.m_AutoPlay) {
+                this.m_Sprite.stop();
+            }
         }
 
         public update(time: number): void {
@@ -81,6 +101,18 @@ namespace Weaver {
             this.m_Sprite.draw(shader, this.owner.worldMatrix);
 
             super.render(shader);
+        }
+
+        public play(): void {
+            this.m_Sprite.play();
+        }
+
+        public stop(): void {
+            this.m_Sprite.stop();
+        }
+
+        public setFrame(frameNumber: number): void {
+            this.m_Sprite.setFrame(frameNumber);
         }
     }
 

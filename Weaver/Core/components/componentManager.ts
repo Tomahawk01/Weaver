@@ -13,9 +13,9 @@
                 if (ComponentManager.s_RegisteredBuilders[String(json.type)] !== undefined) {
                     return ComponentManager.s_RegisteredBuilders[String(json.type)].buildFromJson(json);
                 }
-            }
 
-            throw new Error("Component manager error: type is missing or builder is not registered for this type");
+                throw new Error("Component manager error: type is missing or builder is not registered for this type");
+            }
         }
     }
 }

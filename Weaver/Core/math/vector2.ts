@@ -71,6 +71,25 @@
             return new Float32Array(this.toArray());
         }
 
+        /** Converts Vector2 to Vector3 */
+        public toVector3(): Vector3 {
+            return new Vector3(this.m_X, this.m_Y, 0);
+        }
+
+        /**
+         * Sets the components of this Vector2 to the specified values
+         * @param x New value for the x-component (optional)
+         * @param y New value for the y-component (optional)
+         */
+        public set(x?: number, y?: number): void {
+            if (x !== undefined) {
+                this.m_X = x;
+            }
+            if (y !== undefined) {
+                this.m_Y = y;
+            }
+        }
+
         /**
         * Sets the Vector2 components from a JSON object containing 'x' and 'y' properties
         * @param json Json object to set the somponents from
@@ -130,8 +149,17 @@
         }
 
         /**
-         * Clones this Vector2
+         * Scales this Vector2 by the specified factor
+         * @param scale Scaling factor
          */
+        public scale(scale: number): Vector2 {
+            this.m_X *= scale;
+            this.m_Y *= scale;
+
+            return this;
+        }
+
+        /** Clones this Vector2 */
         public clone(): Vector2 {
             return new Vector2(this.m_X, this.m_Y);
         }

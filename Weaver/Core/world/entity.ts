@@ -52,6 +52,40 @@
             }
         }
 
+        public getComponentByName(name: string): IComponent {
+            for (let component of this.m_Components) {
+                if (component.name === name) {
+                    return component;
+                }
+            }
+
+            for (let child of this.m_Children) {
+                let component = child.getComponentByName(name);
+                if (component !== undefined) {
+                    return component;
+                }
+            }
+
+            return undefined;
+        }
+
+        public getBehaviorByName(name: string): IBehavior {
+            for (let behavior of this.m_Behaviors) {
+                if (behavior.name === name) {
+                    return behavior;
+                }
+            }
+
+            for (let child of this.m_Children) {
+                let behavior = child.getBehaviorByName(name);
+                if (behavior !== undefined) {
+                    return behavior;
+                }
+            }
+
+            return undefined;
+        }
+
         public getEntityByName(name: string): Entity {
             if (this.name === name) {
                 return this;
@@ -86,6 +120,20 @@
 
             for (let c of this.m_Children) {
                 c.load();
+            }
+        }
+
+        public updateReady(): void {
+            for (let c of this.m_Components) {
+                c.updateReady();
+            }
+
+            for (let b of this.m_Behaviors) {
+                b.updateReady();
+            }
+
+            for (let c of this.m_Children) {
+                c.updateReady();
             }
         }
 

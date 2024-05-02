@@ -7,12 +7,12 @@
             "name": "bird",
             "transform": {
                 "position": {
-                    "x": 100,
+                    "x": 30,
                     "y": 100
                 },
                 "scale": {
-                    "x": 8,
-                    "y": 8
+                    "x": 2,
+                    "y": 2
                 }
             },
             "components": [
@@ -34,7 +34,7 @@
                     "type": "collision",
                     "shape": {
                         "type": "circle",
-                        "radius": 64
+                        "radius": 8
                     }
                 }
             ],
@@ -58,11 +58,7 @@
                 {
                     "name": "test",
                     "type": "sprite",
-                    "materialName": "checkerboard",
-                    "origin": {
-                        "x": 0.5,
-                        "y": 0.5
-                    }
+                    "materialName": "floor"
                 },
                 {
                     "name": "testBoxCollision",

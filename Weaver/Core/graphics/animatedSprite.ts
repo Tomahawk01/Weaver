@@ -28,6 +28,7 @@ namespace Weaver {
         private m_AssetLoaded: boolean = false;
         private m_AssetWidth: number = 2;
         private m_AssetHeight: number = 2;
+        private m_IsPlaying: boolean = true;
 
         /**
          * Creates a new animated sprite
@@ -51,8 +52,33 @@ namespace Weaver {
             Message.subscribe(MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Material.diffuseTextureName, this);
         }
 
+        /** Indicates if this animated sprite is currently playing */
+        public get isPlaying(): boolean {
+            return this.m_IsPlaying;
+        }
+
         public destroy(): void {
             super.destroy();
+        }
+
+        public play(): void {
+            this.m_IsPlaying = true;
+        }
+
+        public stop(): void {
+            this.m_IsPlaying = false;
+        }
+
+        /**
+         * Sets the desired frame index for the animated sprite
+         * @param frameNumber Frame to set
+         */
+        public setFrame(frameNumber: number): void {
+            if (frameNumber >= this.m_FrameCount) {
+                throw new Error("Frame is out of range: " + frameNumber + ", frame count: " + this.m_FrameCount);
+            }
+
+            this.m_CurrentFrame = frameNumber;
         }
 
         /**
@@ -72,6 +98,10 @@ namespace Weaver {
         /** Performs loading logic on this animated sprite */
         public load(): void {
             super.load();
+
+            if (!this.m_AssetLoaded) {
+                this.setupFromMaterial();
+            }
         }
 
         /**
@@ -80,6 +110,11 @@ namespace Weaver {
          */
         public update(time: number): void {
             if (!this.m_AssetLoaded) {
+                this.setupFromMaterial();
+                return;
+            }
+
+            if (!this.m_IsPlaying) {
                 return;
             }
 
@@ -132,6 +167,20 @@ namespace Weaver {
 
 
                 this.m_FrameUVs.push(new UVInfo(min, max));
+            }
+        }
+
+        private setupFromMaterial(): void {
+            if (!this.m_AssetLoaded) {
+                let material = MaterialManager.getMaterial(this.m_MaterialName);
+                if (material.diffuseTexture.isLoaded) {
+                    if (AssetManager.isAssetLoaded(material.diffuseTextureName)) {
+                        this.m_AssetHeight = material.diffuseTexture.height;
+                        this.m_AssetWidth = material.diffuseTexture.width;
+                        this.m_AssetLoaded = true;
+                        this.calculateUVs();
+                    }
+                }
             }
         }
     }

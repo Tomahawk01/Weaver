@@ -182,6 +182,7 @@
             return new Vector3(this.m_X, this.m_Y, this.m_Z);
         }
 
+        /** Converts Vector3 to Vector2 */
         public toVector2(): Vector2 {
             return new Vector2(this.m_X, this.m_Y);
         }

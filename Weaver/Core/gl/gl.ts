@@ -25,8 +25,8 @@
             }
 
             gl = canvas.getContext("webgl2");
-            if (gl === undefined) {
-                throw new Error("Unable to initialize WebGL!");
+            if (gl === undefined || gl === null) {
+                throw new Error("Unable to initialize WebGL2!");
             }
 
             return canvas;
