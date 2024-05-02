@@ -54,6 +54,16 @@
         }
 
         /**
+        * Calculates the Euclidean distance between two Vector3 points
+        * @param a The first Vector3 point
+        * @param b The second Vector3 point
+        */
+        public static distance(a: Vector3, b: Vector3): number {
+            let diff = a.subtract(b);
+            return Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+        }
+
+        /**
          * Sets the components of this Vector3 to the specified values
          * @param x New value for the x-component (optional)
          * @param y New value for the y-component (optional)

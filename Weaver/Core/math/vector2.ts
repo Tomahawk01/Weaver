@@ -43,6 +43,16 @@
         }
 
         /**
+         * Calculates the Euclidean distance between two Vector2 points
+         * @param a The first Vector2 point
+         * @param b The second Vector2 point
+         */
+        public static distance(a: Vector2, b: Vector2): number {
+            let diff = a.subtract(b);
+            return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
+        }
+
+        /**
          * Copies the components of another Vector2 into this Vector2
          * @param v Vector to copy from
          */
@@ -73,6 +83,50 @@
             if (json.y !== undefined) {
                 this.m_Y = Number(json.y);
             }
+        }
+
+        /**
+        * Adds the provided vector to this vector and returns the result
+        * @param v Vector2 to add
+        */
+        public add(v: Vector2): Vector2 {
+            this.m_X += v.m_X;
+            this.m_Y += v.m_Y;
+
+            return this;
+        }
+
+        /**
+         * Subtracts the provided vector from this vector and returns the result
+         * @param v Vector2 to subtract
+         */
+        public subtract(v: Vector2): Vector2 {
+            this.m_X -= v.m_X;
+            this.m_Y -= v.m_Y;
+
+            return this;
+        }
+
+        /**
+         * Multiplies this vector by the provided vector and returns the result
+         * @param v Vector2 to multiply by
+         */
+        public multiply(v: Vector2): Vector2 {
+            this.m_X *= v.m_X;
+            this.m_Y *= v.m_Y;
+
+            return this;
+        }
+
+        /**
+         * Divides this vector by the provided vector and returns the result
+         * @param v Vector2 to divide by
+         */
+        public divide(v: Vector2): Vector2 {
+            this.m_X /= v.m_X;
+            this.m_Y /= v.m_Y;
+
+            return this;
         }
     }
 }

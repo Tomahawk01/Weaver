@@ -24,6 +24,14 @@
                     "frameHeight": 16,
                     "frameCount": 8,
                     "frameSequence": [0,1,2,3,4,5,6,7]
+                },
+                {
+                    "name": "birdCollision",
+                    "type": "collision",
+                    "shape": {
+                        "type": "circle",
+                        "radius": 64
+                    }
                 }
             ],
             "behaviors": [
