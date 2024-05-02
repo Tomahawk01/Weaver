@@ -95,7 +95,7 @@
         }
 
         /** Returns the data of this vector as a Float32Array */
-        public toFLoat32Array(): Float32Array {
+        public toFloat32Array(): Float32Array {
             return new Float32Array(this.toArray());
         }
 
@@ -173,6 +173,17 @@
             this.m_Z /= v.m_Z;
 
             return this;
+        }
+
+        /**
+        * Clones this Vector3
+        */
+        public clone(): Vector3 {
+            return new Vector3(this.m_X, this.m_Y, this.m_Z);
+        }
+
+        public toVector2(): Vector2 {
+            return new Vector2(this.m_X, this.m_Y);
         }
     }
 }

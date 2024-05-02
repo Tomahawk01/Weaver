@@ -6,7 +6,7 @@
         private m_Canvas: HTMLCanvasElement;
         private m_BasicShader: BasicShader;
         private m_Projection: Matrix4x4;
-        private m_PreviousTime: number;
+        private m_PreviousTime: number = 0;
 
         /** Creates a new engine */
         public constructor() {
@@ -70,8 +70,10 @@
 
         private update(): void {
             let delta = performance.now() - this.m_PreviousTime;
+
             MessageBus.update(delta);
             LevelManager.update(delta);
+            CollisionManager.update(delta);
 
             this.m_PreviousTime = performance.now();
         }

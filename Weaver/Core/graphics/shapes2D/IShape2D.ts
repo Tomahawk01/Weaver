@@ -3,6 +3,7 @@
     export interface IShape2D {
 
         position: Vector2;
+        offset: Vector2;
 
         setFromJson(json: any): void;
 

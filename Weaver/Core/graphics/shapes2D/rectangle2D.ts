@@ -3,6 +3,7 @@
     export class Rectangle2D implements IShape2D {
 
         public position: Vector2 = Vector2.zero;
+        public offset: Vector2 = Vector2.zero;
 
         public width: number;
         public height: number;
@@ -10,6 +11,10 @@
         public setFromJson(json: any): void {
             if (json.position !== undefined) {
                 this.position.setFromJson(json.position);
+            }
+
+            if (json.offset !== undefined) {
+                this.offset.setFromJson(json.offset);
             }
 
             if (json.width === undefined) {

@@ -23,14 +23,22 @@
                     "frameWidth": 16,
                     "frameHeight": 16,
                     "frameCount": 8,
-                    "frameSequence": [0,1,2,3,4,5,6,7]
+                    "frameSequence": [0,1,2,3,4,5,6,7],
+                    "origin": {
+                        "x": 0.5,
+                        "y": 0.5
+                    }
                 },
                 {
                     "name": "birdCollision",
                     "type": "collision",
                     "shape": {
                         "type": "circle",
-                        "radius": 64
+                        "radius": 64,
+                        "offset": {
+                            "x": 64,
+                            "y": 64
+                        }
                     }
                 }
             ],
@@ -43,40 +51,13 @@
             ]
         },
         {
-            "name": "parentEntity",
+            "name": "testBox",
             "transform": {
                 "position": {
                     "x": 300,
                     "y": 300
                 }
             },
-            "children": [
-                {
-                    "name": "testEntity",
-                    "transform": {
-                        "position": {
-                            "x": 120,
-                            "y": 120
-                        }
-                    },
-                    "components": [
-                        {
-                            "name": "test",
-                            "type": "sprite",
-                            "materialName": "checkerboard"
-                        }
-                    ],
-                    "behaviors": [
-                        {
-                            "name": "rotateX",
-                            "type": "rotation",
-                            "rotation": {
-                                "z": 0.01
-                            }
-                        }
-                    ]
-                }
-            ],
             "components": [
                 {
                     "name": "test",
@@ -86,16 +67,22 @@
                         "x": 0.5,
                         "y": 0.5
                     }
+                },
+                {
+                    "name": "testBoxCollision",
+                    "type": "collision",
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 100,
+                        "height": 100,
+                        "offset": {
+                            "x": -50,
+                            "y": -50
+                        }
+                    }
                 }
             ],
             "behaviors": [
-                {
-                    "name": "rotateX",
-                    "type": "rotation",
-                    "rotation": {
-                        "z": 0.01
-                    }
-                }
             ]
         }
     ]

@@ -48,7 +48,7 @@
          * @param b The second Vector2 point
          */
         public static distance(a: Vector2, b: Vector2): number {
-            let diff = a.subtract(b);
+            let diff = a.clone().subtract(b);
             return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
         }
 
@@ -67,7 +67,7 @@
         }
 
         /** Returns the data of this vector as a Float32Array */
-        public toFLoat32Array(): Float32Array {
+        public toFloat32Array(): Float32Array {
             return new Float32Array(this.toArray());
         }
 
@@ -127,6 +127,13 @@
             this.m_Y /= v.m_Y;
 
             return this;
+        }
+
+        /**
+         * Clones this Vector2
+         */
+        public clone(): Vector2 {
+            return new Vector2(this.m_X, this.m_Y);
         }
     }
 }

@@ -62,8 +62,34 @@
             return this.m_Shape;
         }
 
+        public load(): void {
+            super.load();
+
+            this.m_Shape.position.copyFrom(this.owner.transform.position.toVector2().add(this.m_Shape.offset));
+
+            CollisionManager.registerCollisionComponent(this);
+        }
+
+        public update(time: number): void {
+            this.m_Shape.position.copyFrom(this.owner.transform.position.toVector2().add(this.m_Shape.offset));
+
+            super.update(time);
+        }
+
         public render(shader: Shader): void {
             super.render(shader);
+        }
+
+        public onCollisionEntry(other: CollisionComponent): void {
+            console.log("onCollisionEntry: ", this, other);
+        }
+
+        public onCollisionUpdate(other: CollisionComponent): void {
+            console.log("onCollisionUpdate: ", this, other);
+        }
+
+        public onCollisionExit(other: CollisionComponent): void {
+            console.log("onCollisionExit: ", this, other);
         }
     }
 
