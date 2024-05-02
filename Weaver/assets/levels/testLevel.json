@@ -34,7 +34,7 @@
                     "type": "collision",
                     "shape": {
                         "type": "circle",
-                        "radius": 8
+                        "radius": 5
                     }
                 }
             ],
@@ -43,30 +43,43 @@
                     "name": "movementBehavior",
                     "type": "keyboardMovement",
                     "speed": 5.5
+                },
+                {
+                    "name": "playerController",
+                    "type": "player",
+                    "animatedSpriteName": "birdAnimatedSprite",
+                    "playerCollisionComponent": "birdCollision",
+                    "groundCollisionComponent": "groundCollision"
                 }
             ]
         },
         {
-            "name": "testBox",
+            "name": "ground",
             "transform": {
                 "position": {
-                    "x": 300,
-                    "y": 300
+                    "x": 0,
+                    "y": 455
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1
                 }
             },
             "components": [
                 {
-                    "name": "test",
+                    "name": "floor",
                     "type": "sprite",
-                    "materialName": "floor"
+                    "materialName": "floor",
+                    "width": 339,
+                    "height": 111
                 },
                 {
-                    "name": "testBoxCollision",
+                    "name": "groundCollision",
                     "type": "collision",
                     "shape": {
                         "type": "rectangle",
-                        "width": 100,
-                        "height": 100
+                        "width": 339,
+                        "height": 22
                     }
                 }
             ],
