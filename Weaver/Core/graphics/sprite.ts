@@ -6,6 +6,7 @@
         protected m_Name: string;
         protected m_Width: number;
         protected m_Height: number;
+        protected m_Origin: Vector3 = Vector3.zero;
 
         protected m_Buffer: GLBuffer;
         protected m_MaterialName: string;
@@ -31,6 +32,15 @@
             return this.m_Name;
         }
 
+        public get origin(): Vector3 {
+            return this.m_Origin;
+        }
+
+        public set origin(value: Vector3) {
+            this.m_Origin = value;
+            this.recalculateVertices();
+        }
+
         public destroy(): void {
             this.m_Buffer.destroy();
             MaterialManager.releaseMaterial(this.m_MaterialName);
@@ -52,23 +62,7 @@
             texCoordAttribute.size = 2;
             this.m_Buffer.addAttributeLocation(texCoordAttribute);
 
-            this.m_Vertices = [
-                // x,y,z,   u,v
-                new Vertex(0, 0, 0, 0, 0),
-                new Vertex(0, this.m_Height, 0, 0, 1.0),
-                new Vertex(this.m_Width, this.m_Height, 0, 1.0, 1.0),
-
-                new Vertex(this.m_Width, this.m_Height, 0, 1.0, 1.0),
-                new Vertex(this.m_Width, 0, 0, 1.0, 0),
-                new Vertex(0, 0, 0, 0, 0)
-            ];
-
-            for (let v of this.m_Vertices) {
-                this.m_Buffer.pushbackData(v.toArray());
-            }
-
-            this.m_Buffer.upload();
-            this.m_Buffer.unbind();
+            this.calculateVertices();
         }
 
         /**
@@ -95,6 +89,57 @@
 
             this.m_Buffer.bind();
             this.m_Buffer.draw();
+        }
+
+        protected calculateVertices(): void {
+            let minX = -(this.m_Width * this.m_Origin.x);
+            let maxX = this.m_Width * (1.0 - this.m_Origin.x);
+
+            let minY = -(this.m_Height * this.m_Origin.y);
+            let maxY = this.m_Height * (1.0 - this.m_Origin.y);
+
+            this.m_Vertices = [
+                // x,y,z,   u,v
+                new Vertex(minX, minY, 0, 0, 0),
+                new Vertex(minX, maxY, 0, 0, 1.0),
+                new Vertex(maxX, maxY, 0, 1.0, 1.0),
+
+                new Vertex(maxX, maxY, 0, 1.0, 1.0),
+                new Vertex(maxX, minY, 0, 1.0, 0),
+                new Vertex(minX, minY, 0, 0, 0)
+            ];
+
+            for (let v of this.m_Vertices) {
+                this.m_Buffer.pushbackData(v.toArray());
+            }
+
+            this.m_Buffer.upload();
+            this.m_Buffer.unbind();
+        }
+
+        protected recalculateVertices(): void {
+            let minX = -(this.m_Width * this.m_Origin.x);
+            let maxX = this.m_Width * (1.0 - this.m_Origin.x);
+
+            let minY = -(this.m_Height * this.m_Origin.y);
+            let maxY = this.m_Height * (1.0 - this.m_Origin.y);
+
+            this.m_Vertices[0].position.set(minX, minY);
+            this.m_Vertices[1].position.set(minX, maxY);
+            this.m_Vertices[2].position.set(maxX, maxY);
+
+            this.m_Vertices[3].position.set(maxX, maxY);
+            this.m_Vertices[4].position.set(maxX, minY);
+            this.m_Vertices[5].position.set(minX, minY);
+
+            this.m_Buffer.clearData();
+
+            for (let v of this.m_Vertices) {
+                this.m_Buffer.pushbackData(v.toArray());
+            }
+
+            this.m_Buffer.upload();
+            this.m_Buffer.unbind();
         }
     }
 }

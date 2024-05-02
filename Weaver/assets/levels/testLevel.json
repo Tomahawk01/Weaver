@@ -73,7 +73,11 @@
                 {
                     "name": "test",
                     "type": "sprite",
-                    "materialName": "checkerboard"
+                    "materialName": "checkerboard",
+                    "origin": {
+                        "x": 0.5,
+                        "y": 0.5
+                    }
                 }
             ],
             "behaviors": [

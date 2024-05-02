@@ -53,6 +53,32 @@
             return new Vector3(1, 1, 1);
         }
 
+        /**
+         * Sets the components of this Vector3 to the specified values
+         * @param x New value for the x-component (optional)
+         * @param y New value for the y-component (optional)
+         * @param z New value for the z-component (optional)
+         */
+        public set(x?: number, y?: number, z?: number): void {
+            if (x !== undefined) {
+                this.m_X = x;
+            }
+            if (y !== undefined) {
+                this.m_Y = y;
+            }
+            if (z !== undefined) {
+                this.m_Z = z;
+            }
+        }
+
+        /**
+         * Check if this Vector3 is equal to the one passed in
+         * @param v Vector3 to check against
+         */
+        public equals(v: Vector3): boolean {
+            return (this.x === v.x && this.y === v.y && this.z === v.z);
+        }
+
         /** Returns the data of this vector as a number array */
         public toArray(): number[] {
             return [this.m_X, this.m_Y, this.m_Z];

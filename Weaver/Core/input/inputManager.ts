@@ -54,16 +54,18 @@
 
         private static onKeyDown(event: KeyboardEvent): boolean {
             InputManager.s_Keys[event.keyCode] = true;
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
+            return true;
+            //event.preventDefault();
+            //event.stopPropagation();
+            //return false;
         }
 
         private static onKeyUp(event: KeyboardEvent): boolean {
             InputManager.s_Keys[event.keyCode] = false;
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
+            return true;
+            //event.preventDefault();
+            //event.stopPropagation();
+            //return false;
         }
 
         private static onMouseMove(event: MouseEvent): void {

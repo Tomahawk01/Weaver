@@ -4,6 +4,7 @@
 
         public name: string;
         public materialName: string;
+        public origin: Vector3 = Vector3.zero;
 
         public setFromJson(json: any): void {
             if (json.name !== undefined) {
@@ -12,6 +13,10 @@
 
             if (json.materialName !== undefined) {
                 this.materialName = String(json.materialName);
+            }
+
+            if (json.origin !== undefined) {
+                this.origin.setFromJson(json.origin);
             }
         }
     }
@@ -37,6 +42,9 @@
             super(data);
 
             this.m_Sprite = new Sprite(this.name, data.materialName);
+            if (!data.origin.equals(Vector3.zero)) {
+                this.m_Sprite.origin.copyFrom(data.origin);
+            }
         }
 
         public load(): void {
