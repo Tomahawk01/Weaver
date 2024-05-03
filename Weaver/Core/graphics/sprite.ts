@@ -41,6 +41,14 @@
             this.recalculateVertices();
         }
 
+        public get width(): number {
+            return this.m_Width;
+        }
+
+        public get height(): number {
+            return this.m_Height;
+        }
+
         public destroy(): void {
             this.m_Buffer.destroy();
             MaterialManager.releaseMaterial(this.m_MaterialName);

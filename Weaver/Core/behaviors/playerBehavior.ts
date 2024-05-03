@@ -63,8 +63,11 @@
         private m_PlayerCollisionComponent: string;
         private m_GroundCollisionComponent: string;
         private m_AnimatedSpriteName: string;
+        private m_IsPlaying: boolean = false;
+        private m_InitialPosition: Vector3 = Vector3.zero;
 
         private m_Sprite: AnimatedSpriteComponent;
+        private m_PipeNames: string[] = ["pipe1Collision_end", "pipe1Collision_middle_top", "pipe1Collision_endneg", "pipe1Collision_middle_bottom"];
 
         public constructor(data: PlayerBehaviorData) {
             super(data);
@@ -76,6 +79,9 @@
 
             Message.subscribe("MOUSE_DOWN", this);
             Message.subscribe("COLLISION_ENTRY:" + this.m_PlayerCollisionComponent, this);
+
+            Message.subscribe("GAME_RESET", this);
+            Message.subscribe("GAME_START", this);
         }
 
         public updateReady(): void {
@@ -86,15 +92,19 @@
             if (this.m_Sprite === undefined) {
                 throw new Error("AnimatedSpriteComponent named '" + this.m_AnimatedSpriteName + "' is not attached to the owner of this component");
             }
+
+            // Make sure the animation plays from start
+            this.m_Sprite.setFrame(0);
+
+            this.m_InitialPosition.copyFrom(this.m_Owner.transform.position);
         }
 
         public update(time: number): void {
-            if (!this.m_IsAlive) {
-                return;
-            }
-
             let seconds: number = time / 1000;
-            this.m_Velocity.add(this.m_Acceleration.clone().scale(seconds));
+
+            if (this.m_IsPlaying) {
+                this.m_Velocity.add(this.m_Acceleration.clone().scale(seconds));
+            }
 
             // Limit max speed
             if (this.m_Velocity.y > 400) {
@@ -127,7 +137,7 @@
                 this.m_Sprite.stop();
             }
             else {
-                if (!this.m_Sprite.isPlaying()) {
+                if (!this.m_Sprite.isPlaying) {
                     this.m_Sprite.play();
                 }
             }
@@ -145,8 +155,17 @@
                     if (data.a.name === this.m_GroundCollisionComponent || data.b.name === this.m_GroundCollisionComponent) {
                         this.die();
                         this.decelerate();
-                        Message.send("PLAYER_DIED", this);
                     }
+
+                    if (this.m_PipeNames.indexOf(data.a.name) !== -1 || this.m_PipeNames.indexOf(data.b.name) !== -1) {
+                        this.die();
+                    }
+                    break;
+                case "GAME_RESET":
+                    this.reset();
+                    break;
+                case "GAME_START":
+                    this.start();
                     break;
             }
         }
@@ -156,12 +175,31 @@
         }
 
         private shouldNotFlap(): boolean {
-            return this.m_Velocity.y > 220.0 || !this.m_IsAlive;
+            return this.m_IsPlaying || this.m_Velocity.y > 220.0 || !this.m_IsAlive;
         }
 
         private die(): void {
-            this.m_IsAlive = false;
-            AudioManager.playSound("death");
+            if (this.m_IsAlive) {
+                this.m_IsAlive = false;
+                AudioManager.playSound("death");
+                Message.send("PLAYER_DIED", this);
+            }
+        }
+
+        private reset(): void {
+            this.m_IsAlive = true;
+            this.m_IsPlaying = false;
+            this.m_Sprite.owner.transform.position.copyFrom(this.m_InitialPosition);
+            this.m_Sprite.owner.transform.rotation.z = 0;
+
+            this.m_Velocity.set(0, 0);
+            this.m_Acceleration.set(0, 920);
+            this.m_Sprite.play();
+        }
+
+        private start(): void {
+            this.m_IsPlaying = true;
+            Message.send("PLAYER_RESET", this);
         }
 
         private decelerate(): void {
@@ -170,7 +208,7 @@
         }
 
         private onFlap(): void {
-            if (this.m_IsAlive) {
+            if (this.m_IsAlive && this.m_IsPlaying) {
                 this.m_Velocity.y = -280;
                 AudioManager.playSound("flap");
             }

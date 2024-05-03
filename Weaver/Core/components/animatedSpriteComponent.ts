@@ -77,7 +77,7 @@ namespace Weaver {
             }
         }
 
-        public isPlaying(): boolean {
+        public get isPlaying(): boolean {
             return this.m_Sprite.isPlaying;
         }
 

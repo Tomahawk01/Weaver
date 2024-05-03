@@ -125,6 +125,7 @@
     <TypeScriptCompile Include="Core\behaviors\keyboardMovementBehavior.ts" />
     <TypeScriptCompile Include="Core\behaviors\playerBehavior.ts" />
     <TypeScriptCompile Include="Core\behaviors\rotationBehavior.ts" />
+    <TypeScriptCompile Include="Core\behaviors\scrollBehavior.ts" />
     <TypeScriptCompile Include="Core\collision\collisionManager.ts" />
     <TypeScriptCompile Include="Core\components\animatedSpriteComponent.ts" />
     <TypeScriptCompile Include="Core\components\baseComponent.ts" />

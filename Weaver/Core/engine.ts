@@ -42,6 +42,9 @@
             this.m_BasicShader.use();
 
             // Load materials
+            MaterialManager.registerMaterial(new Material("bg", "assets/textures/bg.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("end", "assets/textures/end.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("middle", "assets/textures/middle.png", Color.white()));
             MaterialManager.registerMaterial(new Material("floor", "assets/textures/floor.png", Color.white()));
             MaterialManager.registerMaterial(new Material("bird", "assets/textures/Bird.png", Color.white()));
 

@@ -4,10 +4,15 @@
 
         public name: string;
         public shape: IShape2D;
+        public static: boolean = true;
 
         public setFromJson(json: any): void {
             if (json.name !== undefined) {
                 this.name = String(json.name);
+            }
+
+            if (json.static !== undefined) {
+                this.static = Boolean(json.static);
             }
 
             if (json.shape === undefined) {
@@ -51,27 +56,33 @@
     export class CollisionComponent extends BaseComponent {
 
         private m_Shape: IShape2D;
+        private m_Static: boolean;
 
         public constructor(data: CollisionComponentData) {
             super(data);
 
             this.m_Shape = data.shape;
+            this.m_Static = data.static;
         }
 
         public get shape(): IShape2D {
             return this.m_Shape;
         }
 
+        public get isStatic(): boolean {
+            return this.m_Static;
+        }
+
         public load(): void {
             super.load();
 
-            this.m_Shape.position.copyFrom(this.owner.transform.position.toVector2().add(this.m_Shape.offset));
+            this.m_Shape.position.copyFrom(this.owner.getWorldPosition().toVector2().subtract(this.m_Shape.offset));
 
             CollisionManager.registerCollisionComponent(this);
         }
 
         public update(time: number): void {
-            this.m_Shape.position.copyFrom(this.owner.transform.position.toVector2().add(this.m_Shape.offset));
+            this.m_Shape.position.copyFrom(this.owner.getWorldPosition().toVector2().subtract(this.m_Shape.offset));
 
             super.update(time);
         }
@@ -85,7 +96,7 @@
         }
 
         public onCollisionUpdate(other: CollisionComponent): void {
-            console.log("onCollisionUpdate: ", this, other);
+            //console.log("onCollisionUpdate: ", this, other);
         }
 
         public onCollisionExit(other: CollisionComponent): void {

@@ -164,6 +164,10 @@
             }
         }
 
+        public getWorldPosition(): Vector3 {
+            return new Vector3(this.m_WorldMatrix.data[12], this.m_WorldMatrix.data[13], this.m_WorldMatrix.data[14]);
+        }
+
         protected onAdded(scene: Scene): void {
             this.m_Scene = scene;
         }
