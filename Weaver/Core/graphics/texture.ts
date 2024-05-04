@@ -18,7 +18,7 @@
             this.m_Height = height;
 
             this.m_Handle = gl.createTexture();
-            Message.subscribe(MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Name, this);
+            
             this.bind();
 
             gl.texImage2D(gl.TEXTURE_2D, LEVEL, gl.RGBA, 1, 1, BORDER, gl.RGBA, gl.UNSIGNED_BYTE, TEMP_IMAGE_DATA);
@@ -26,6 +26,9 @@
             let asset = AssetManager.getAsset(this.name) as ImageAsset;
             if (asset !== undefined) {
                 this.loadTextureFromAsset(asset);
+            }
+            else {
+                Message.subscribe(MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Name, this);
             }
         }
 

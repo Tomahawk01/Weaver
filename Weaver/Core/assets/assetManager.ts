@@ -16,6 +16,7 @@
         public static initialize(): void {
             AssetManager.s_Loaders.push(new ImageAssetLoader());
             AssetManager.s_Loaders.push(new JsonAssetLoader());
+            AssetManager.s_Loaders.push(new TextAssetLoader());
         }
 
         /**

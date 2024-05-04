@@ -574,7 +574,7 @@
             "transform": {
                 "position": {
                     "x": 30,
-                    "y": 100
+                    "y": 200
                 },
                 "scale": {
                     "x": 2,
@@ -600,8 +600,8 @@
                     "type": "collision",
                     "shape": {
                         "type": "rectangle",
-                        "width": 32,
-                        "height": 32,
+                        "width": 16,
+                        "height": 16,
                         "origin": {
                             "x": 0.5,
                             "y": 0.5
@@ -618,6 +618,25 @@
                     "playerCollisionComponent": "birdCollision",
                     "groundCollisionComponent": "groundCollision"
                 }
+            ]
+        },
+        {
+            "name": "testTextEntity",
+            "transform": {
+                "position": {
+                    "x": 130,
+                    "y": 30
+                }
+            },
+            "components": [
+                {
+                    "name": "testText",
+                    "type": "bitmapText",
+                    "text": "69",
+                    "fontName": "default"
+                }
+            ],
+            "behaviors": [
             ]
         }
     ]

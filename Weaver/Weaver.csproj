@@ -116,6 +116,7 @@
     <TypeScriptCompile Include="Core\assets\IAssetLoader.ts" />
     <TypeScriptCompile Include="Core\assets\imageAssetLoader.ts" />
     <TypeScriptCompile Include="Core\assets\jsonAssetLoader.ts" />
+    <TypeScriptCompile Include="Core\assets\textAssetLoader.ts" />
     <TypeScriptCompile Include="Core\audio\audioManager.ts" />
     <TypeScriptCompile Include="Core\behaviors\baseBehavior.ts" />
     <TypeScriptCompile Include="Core\behaviors\behaviorManager.ts" />
@@ -129,6 +130,7 @@
     <TypeScriptCompile Include="Core\collision\collisionManager.ts" />
     <TypeScriptCompile Include="Core\components\animatedSpriteComponent.ts" />
     <TypeScriptCompile Include="Core\components\baseComponent.ts" />
+    <TypeScriptCompile Include="Core\components\bitmapTextComponent.ts" />
     <TypeScriptCompile Include="Core\components\collisionComponent.ts" />
     <TypeScriptCompile Include="Core\components\componentManager.ts" />
     <TypeScriptCompile Include="Core\components\IComponent.ts" />
@@ -141,6 +143,9 @@
     <TypeScriptCompile Include="Core\gl\shader.ts" />
     <TypeScriptCompile Include="Core\gl\shaders\basicShader.ts" />
     <TypeScriptCompile Include="Core\graphics\animatedSprite.ts" />
+    <TypeScriptCompile Include="Core\graphics\bitmapFont.ts" />
+    <TypeScriptCompile Include="Core\graphics\bitmapFontManager.ts" />
+    <TypeScriptCompile Include="Core\graphics\bitmapText.ts" />
     <TypeScriptCompile Include="Core\graphics\color.ts" />
     <TypeScriptCompile Include="Core\graphics\material.ts" />
     <TypeScriptCompile Include="Core\graphics\materialManager.ts" />

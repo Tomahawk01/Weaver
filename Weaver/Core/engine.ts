@@ -41,6 +41,10 @@
             this.m_BasicShader = new BasicShader();
             this.m_BasicShader.use();
 
+            // Load fonts
+            BitmapFontManager.addFont("default", "assets/fonts/text.txt");
+            BitmapFontManager.load();
+
             // Load materials
             MaterialManager.registerMaterial(new Material("bg", "assets/textures/bg.png", Color.white()));
             MaterialManager.registerMaterial(new Material("end", "assets/textures/end.png", Color.white()));
@@ -55,10 +59,10 @@
             // Load
             this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
 
-            LevelManager.changeLevel(0);
-
             this.resize();
-            this.loop();
+
+            // Begin preloading phase, which waits for things to be loaded before start the game
+            this.preloading();
         }
 
         /** Resizes the canvas to fit the window */
@@ -84,6 +88,23 @@
         private loop(): void {
             this.update();
             this.render();
+
+            requestAnimationFrame(this.loop.bind(this));
+        }
+
+        private preloading(): void {
+            // Make sure to always update the message bus
+            MessageBus.update(0);
+
+            if (!BitmapFontManager.updateReady()) {
+                requestAnimationFrame(this.preloading.bind(this));
+                return;
+            }
+
+            // Load level
+            LevelManager.changeLevel(0);
+
+            this.loop();
         }
 
         private update(): void {
@@ -104,8 +125,6 @@
             // Set uniforms
             let projectionLocation = this.m_BasicShader.getUniformLocation("u_projection");
             gl.uniformMatrix4fv(projectionLocation, false, new Float32Array(this.m_Projection.data));
-
-            requestAnimationFrame(this.loop.bind(this));
         }
     }
 }
