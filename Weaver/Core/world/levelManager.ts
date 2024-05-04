@@ -88,6 +88,9 @@
             LevelManager.s_ActiveLevel.initialize(levelData);
             LevelManager.s_ActiveLevel.onActivated();
             LevelManager.s_ActiveLevel.load();
+
+            // Change state to splash screen
+            Message.send("GAME_READY", this);
         }
     }
 }

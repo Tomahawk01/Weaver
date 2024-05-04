@@ -10,6 +10,9 @@
         private m_GameWidth: number;
         private m_GameHeight: number;
 
+        private m_IsFirstUpdate: boolean = true;
+        private m_Aspect: number;
+
         /**
          * Creates a new engine
          * @param width Width of the game in pixels
@@ -21,17 +24,14 @@
         }
 
         /** Starts up this engine */
-        public start(): void {
-            this.m_Canvas = GLUtilities.initialize();
+        public start(elementName?: string): void {
+            this.m_Canvas = GLUtilities.initialize(elementName);
             if (this.m_GameWidth !== undefined && this.m_GameHeight !== undefined) {
-                this.m_Canvas.style.width = this.m_GameWidth + "px";
-                this.m_Canvas.style.height = this.m_GameHeight + "px";
-                this.m_Canvas.width = this.m_GameWidth;
-                this.m_Canvas.height = this.m_GameHeight;
+                this.m_Aspect = this.m_GameWidth / this.m_GameHeight;
             }
 
             AssetManager.initialize();
-            InputManager.initialize();
+            InputManager.initialize(this.m_Canvas);
             LevelManager.initialize();
 
             gl.clearColor(0.15, 0.15, 0.15, 1);
@@ -52,6 +52,12 @@
             MaterialManager.registerMaterial(new Material("floor", "assets/textures/floor.png", Color.white()));
             MaterialManager.registerMaterial(new Material("bird", "assets/textures/Bird.png", Color.white()));
 
+            MaterialManager.registerMaterial(new Material("playbtn", "assets/textures/playBtn.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("restartbtn", "assets/textures/restartBtn.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("score", "assets/textures/score.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("title", "assets/textures/title.png", Color.white()));
+            MaterialManager.registerMaterial(new Material("tutorial", "assets/textures/tutorial.png", Color.white()));
+
             AudioManager.loadSoundFile("flap", "assets/sounds/swing.wav", false);
             AudioManager.loadSoundFile("ting", "assets/sounds/ting.wav", false);
             AudioManager.loadSoundFile("death", "assets/sounds/death.wav", false);
@@ -71,10 +77,38 @@
                 if (this.m_GameWidth === undefined || this.m_GameHeight === undefined) {
                     this.m_Canvas.width = window.innerWidth;
                     this.m_Canvas.height = window.innerHeight;
+                    gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+                    this.m_Projection = Matrix4x4.orthographic(0, window.innerWidth, window.innerHeight, 0, -100.0, 1000.0);
                 }
+                else {
+                    let newWidth = window.innerWidth;
+                    let newHeight = window.innerHeight;
+                    let newWidthToHeight = newWidth / newHeight;
+                    let gameArea = document.getElementById("gameArea");
 
-                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-                this.m_Projection = Matrix4x4.orthographic(0, this.m_Canvas.width, this.m_Canvas.height, 0, -100.0, 1000.0);
+                    if (newWidthToHeight > this.m_Aspect) {
+                        newWidth = newHeight * this.m_Aspect;
+                        gameArea.style.width = newWidth + 'px';
+                        gameArea.style.height = newHeight + 'px';
+                    }
+                    else {
+                        newHeight = newWidth / this.m_Aspect;
+                        gameArea.style.width = newWidth + 'px';
+                        gameArea.style.height = newHeight + 'px';
+                    }
+
+                    gameArea.style.marginTop = (-newHeight / 2) + 'px';
+                    gameArea.style.marginLeft = (-newWidth / 2) + 'px';
+
+                    this.m_Canvas.width = newWidth;
+                    this.m_Canvas.height = newHeight;
+
+                    gl.viewport(0, 0, newWidth, newHeight);
+                    this.m_Projection = Matrix4x4.orthographic(0, this.m_GameWidth, this.m_GameHeight, 0, -100.0, 1000.0);
+
+                    let resolutionScale = new Vector2(newWidth / this.m_GameWidth, newHeight / this.m_GameHeight);
+                    InputManager.setResolutionScale(resolutionScale);
+                }
             }
         }
 
@@ -86,6 +120,10 @@
         }
 
         private loop(): void {
+            if (this.m_IsFirstUpdate) {
+
+            }
+
             this.update();
             this.render();
 

@@ -76,9 +76,8 @@
                             let col = new CollisionData(CollisionManager.s_TotalTime, comp, other);
                             comp.onCollisionEntry(other);
                             other.onCollisionEntry(comp);
-                            Message.sendPriority("COLLISION_ENTRY:" + comp.name, this, col);
-                            Message.sendPriority("COLLISION_ENTRY:" + other.name, this, col);
-                            this.s_CollisionData.push(col);
+                            Message.sendPriority("COLLISION_ENTRY", undefined, col);
+                            CollisionManager.s_CollisionData.push(col);
                         }
                     }
                 }
@@ -101,8 +100,7 @@
 
                 data.a.onCollisionExit(data.b);
                 data.b.onCollisionExit(data.a);
-                Message.sendPriority("COLLISION_EXIT:" + data.a.name, this, data);
-                Message.sendPriority("COLLISION_EXIT:" + data.b.name, this, data);
+                Message.sendPriority("COLLISION_EXIT", undefined, data);
             }
         }
     }

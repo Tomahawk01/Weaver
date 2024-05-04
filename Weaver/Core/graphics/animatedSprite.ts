@@ -13,6 +13,19 @@ namespace Weaver {
         }
     }
 
+    export class AnimatedSpriteInfo {
+
+        public name: string;
+        public materialName: string;
+        public width: number = 100;
+        public height: number = 100;
+        public frameWidth: number = 10;
+        public frameHeight: number = 10;
+        public frameCount: number = 1;
+        public frameSequence: number[] = [];
+        public frameTime: number = 60;
+    }
+
     /** Represents a 2D animated sprite which is drawn on the screen */
     export class AnimatedSprite extends Sprite implements IMessageHandler {
 
@@ -21,7 +34,7 @@ namespace Weaver {
         private m_FrameCount: number;
         private m_FrameSequence: number[];
 
-        private m_FrameTime: number = 333;
+        private m_FrameTime: number = 33;
         private m_FrameUVs: UVInfo[] = [];
         private m_CurrentFrame: number = 0;
         private m_CurrentTime: number = 0;
@@ -32,22 +45,16 @@ namespace Weaver {
 
         /**
          * Creates a new animated sprite
-         * @param name Name of this sprite
-         * @param materialName Name of the material to use with this sprite
-         * @param width Width of this sprite
-         * @param height Height of this sprite
-         * @param frameWidth Width of each frame in the sprite sheet. Default: 10
-         * @param frameHeight Height of each frame in the sprite sheet. Default: 10
-         * @param frameCount Total number of frames in the sprite sheet. Default: 1
-         * @param frameSequence The sequence of frame indices to use for animation
+         * @param info Information used to create this animated sprite
          */
-        public constructor(name: string, materialName: string, width: number = 100, height: number = 100, frameWidth: number = 10, frameHeight: number = 10, frameCount: number = 1, frameSequence: number[] = []) {
-            super(name, materialName, width, height);
+        public constructor(info: AnimatedSpriteInfo) {
+            super(info.name, info.materialName, info.width, info.height);
 
-            this.m_FrameWidth = frameWidth;
-            this.m_FrameHeight = frameHeight;
-            this.m_FrameCount = frameCount;
-            this.m_FrameSequence = frameSequence;
+            this.m_FrameWidth = info.frameWidth;
+            this.m_FrameHeight = info.frameHeight;
+            this.m_FrameCount = info.frameCount;
+            this.m_FrameSequence = info.frameSequence;
+            this.m_FrameTime = info.frameTime;
 
             Message.subscribe(MESSAGE_ASSET_LOADER_ASSET_LOADED + this.m_Material.diffuseTextureName, this);
         }

@@ -6,6 +6,8 @@
         public velocity: Vector2 = Vector2.zero;
         public minPosition: Vector2 = Vector2.zero;
         public resetPosition: Vector2 = Vector2.zero;
+        public minResetY: number;
+        public maxResetY: number;
         public startMessage: string;
         public stopMessage: string;
         public resetMessage: string;
@@ -14,7 +16,6 @@
             if (json.name === undefined) {
                 throw new Error("Name must be defined in the behavior data");
             }
-
             this.name = String(json.name);
 
             if (json.startMessage !== undefined) {
@@ -49,6 +50,14 @@
             else {
                 throw new Error("ScrollBehaviorData requires property 'resetPosition' to be defined");
             }
+
+            if (json.minResetY !== undefined) {
+                this.minResetY = Number(json.minResetY);
+            }
+
+            if (json.maxResetY !== undefined) {
+                this.maxResetY = Number(json.maxResetY);
+            }
         }
     }
 
@@ -70,6 +79,8 @@
         private m_Velocity: Vector2 = Vector2.zero;
         private m_MinPosition: Vector2 = Vector2.zero;
         private m_ResetPosition: Vector2 = Vector2.zero;
+        private m_MinResetY: number;
+        private m_MaxResetY: number;
         private m_StartMessage: string;
         private m_StopMessage: string;
         private m_ResetMessage: string;
@@ -85,6 +96,14 @@
             this.m_StartMessage = data.startMessage;
             this.m_StopMessage = data.stopMessage;
             this.m_ResetMessage = data.resetMessage;
+
+            if (data.minResetY !== undefined) {
+                this.m_MinResetY = data.minResetY;
+            }
+
+            if (data.maxResetY !== undefined) {
+                this.m_MaxResetY = data.maxResetY;
+            }
         }
 
         public updateReady(): void {
@@ -108,12 +127,13 @@
         public update(time: number): void {
             if (this.m_IsScrolling) {
                 this.m_Owner.transform.position.add(this.m_Velocity.clone().scale(time / 1000).toVector3());
-            }
 
-            if (this.m_Owner.transform.position.x <= this.m_MinPosition.x &&
-                this.m_Owner.transform.position.y <= this.m_MinPosition.y) {
+                let scrollY = this.m_MinResetY !== undefined && this.m_MaxResetY !== undefined;
+                if (this.m_Owner.transform.position.x <= this.m_MinPosition.x &&
+                    (scrollY || (!scrollY && this.m_Owner.transform.position.y <= this.m_MinPosition.y))) {
 
-                this.reset();
+                    this.reset();
+                }
             }
         }
 
@@ -130,7 +150,16 @@
         }
 
         private reset(): void {
-            this.m_Owner.transform.position.copyFrom(this.m_ResetPosition.toVector3());
+            if (this.m_MinResetY !== undefined && this.m_MaxResetY !== undefined) {
+                this.m_Owner.transform.position.set(this.m_ResetPosition.x, this.getRandomY());
+            }
+            else {
+                this.m_Owner.transform.position.copyFrom(this.m_ResetPosition.toVector3());
+            }
+        }
+
+        private getRandomY(): number {
+            return Math.floor(Math.random() * (this.m_MaxResetY - this.m_MinResetY + 1)) + this.m_MinResetY;
         }
 
         private initial(): void {

@@ -9,6 +9,7 @@
         private m_Scene: Scene;
         private m_Components: IComponent[] = [];
         private m_Behaviors: IBehavior[] = [];
+        private m_IsVisible: boolean = true;
 
         private m_LocalMatrix: Matrix4x4 = Matrix4x4.identity();
         private m_WorldMatrix: Matrix4x4 = Matrix4x4.identity();
@@ -36,6 +37,14 @@
 
         public get isLoaded(): boolean {
             return this.m_IsLoaded;
+        }
+
+        public get isVisible(): boolean {
+            return this.m_IsVisible;
+        }
+
+        public set isVisible(value: boolean) {
+            this.m_IsVisible = value;
         }
 
         public addChild(child: Entity): void {
@@ -155,6 +164,10 @@
         }
 
         public render(shader: Shader): void {
+            if (!this.m_IsVisible) {
+                return;
+            }
+
             for (let c of this.m_Components) {
                 c.render(shader);
             }

@@ -7,6 +7,7 @@
         public playerCollisionComponent: string;
         public groundCollisionComponent: string;
         public animatedSpriteName: string;
+        public scoreCollisionComponent: string;
 
         public setFromJson(json: any): void {
             if (json.name === undefined) {
@@ -39,6 +40,13 @@
             else {
                 this.groundCollisionComponent = String(json.groundCollisionComponent);
             }
+
+            if (json.scoreCollisionComponent === undefined) {
+                throw new Error("scoreCollisionComponent must be defined in behavior data");
+            }
+            else {
+                this.scoreCollisionComponent = String(json.scoreCollisionComponent);
+            }
         }
     }
 
@@ -62,9 +70,12 @@
         private m_IsAlive: boolean = true;
         private m_PlayerCollisionComponent: string;
         private m_GroundCollisionComponent: string;
+        private m_ScoreCollisionComponent: string;
         private m_AnimatedSpriteName: string;
         private m_IsPlaying: boolean = false;
         private m_InitialPosition: Vector3 = Vector3.zero;
+        private m_Score: number = 0;
+        private m_HighScore: number = 0;
 
         private m_Sprite: AnimatedSpriteComponent;
         private m_PipeNames: string[] = ["pipe1Collision_end", "pipe1Collision_middle_top", "pipe1Collision_endneg", "pipe1Collision_middle_bottom"];
@@ -75,13 +86,17 @@
             this.m_Acceleration = data.acceleration;
             this.m_PlayerCollisionComponent = data.playerCollisionComponent;
             this.m_GroundCollisionComponent = data.groundCollisionComponent;
+            this.m_ScoreCollisionComponent = data.scoreCollisionComponent;
             this.m_AnimatedSpriteName = data.animatedSpriteName;
 
             Message.subscribe("MOUSE_DOWN", this);
-            Message.subscribe("COLLISION_ENTRY:" + this.m_PlayerCollisionComponent, this);
+            Message.subscribe("COLLISION_ENTRY", this);
 
+            Message.subscribe("GAME_READY", this);
             Message.subscribe("GAME_RESET", this);
             Message.subscribe("GAME_START", this);
+
+            Message.subscribe("PLAYER_DIED", this);
         }
 
         public updateReady(): void {
@@ -150,22 +165,54 @@
                 case "MOUSE_DOWN":
                     this.onFlap();
                     break;
-                case "COLLISION_ENTRY:" + this.m_PlayerCollisionComponent:
+                case "COLLISION_ENTRY":
                     let data: CollisionData = message.context as CollisionData;
+                    if (data.a.name !== this.m_PlayerCollisionComponent && data.b.name !== this.m_PlayerCollisionComponent) {
+                        return;
+                    }
+
                     if (data.a.name === this.m_GroundCollisionComponent || data.b.name === this.m_GroundCollisionComponent) {
                         this.die();
                         this.decelerate();
                     }
-
-                    if (this.m_PipeNames.indexOf(data.a.name) !== -1 || this.m_PipeNames.indexOf(data.b.name) !== -1) {
+                    else if (this.m_PipeNames.indexOf(data.a.name) !== -1 || this.m_PipeNames.indexOf(data.b.name) !== -1) {
                         this.die();
                     }
+                    else if (data.a.name === this.m_ScoreCollisionComponent || data.b.name === this.m_ScoreCollisionComponent) {
+                        if (this.m_IsAlive && this.m_IsPlaying) {
+                            this.setScore(this.m_Score + 1);
+                            AudioManager.playSound("ting");
+                        }
+                    }
                     break;
+                // Shows tutorial, click to GAME_START
                 case "GAME_RESET":
+                    Message.send("GAME_HIDE", this);
+                    Message.send("RESET_HIDE", this);
+                    Message.send("SPLASH_HIDE", this);
+                    Message.send("TUTORIAL_SHOW", this);
                     this.reset();
                     break;
+                // Start the game
                 case "GAME_START":
+                    Message.send("GAME_SHOW", this);
+                    Message.send("RESET_HIDE", this);
+                    Message.send("SPLASH_HIDE", this);
+                    Message.send("TUTORIAL_HIDE", this);
+                    this.m_IsPlaying = true;
+                    this.m_IsAlive = true;
                     this.start();
+                    break;
+                // Level is loaded, show play button/splash screen
+                case "GAME_READY":
+                    Message.send("RESET_HIDE", this);
+                    Message.send("TUTORIAL_HIDE", this);
+                    Message.send("GAME_HIDE", this);
+                    Message.send("SPLASH_SHOW", this);
+                    break;
+                // Show score and restart button
+                case "PLAYER_DIED":
+                    Message.send("RESET_SHOW", this);
                     break;
             }
         }
@@ -175,7 +222,7 @@
         }
 
         private shouldNotFlap(): boolean {
-            return this.m_IsPlaying || this.m_Velocity.y > 220.0 || !this.m_IsAlive;
+            return !this.m_IsPlaying || this.m_Velocity.y > 220.0 || !this.m_IsAlive;
         }
 
         private die(): void {
@@ -191,6 +238,7 @@
             this.m_IsPlaying = false;
             this.m_Sprite.owner.transform.position.copyFrom(this.m_InitialPosition);
             this.m_Sprite.owner.transform.rotation.z = 0;
+            this.setScore(0);
 
             this.m_Velocity.set(0, 0);
             this.m_Acceleration.set(0, 920);
@@ -214,13 +262,15 @@
             }
         }
 
-        private onRestart(y: number): void {
-            this.m_Owner.transform.rotation.z = 0;
-            this.m_Owner.transform.position.set(30, y);
-            this.m_Velocity.set(0, 0);
-            this.m_Acceleration.set(0, 920);
-            this.m_IsAlive = true;
-            this.m_Sprite.play();
+        private setScore(score: number): void {
+            this.m_Score = score;
+            Message.send("counterText:SetText", this, this.m_Score);
+            Message.send("scoreText:SetText", this, this.m_Score);
+
+            if (this.m_Score > this.m_HighScore) {
+                this.m_HighScore = this.m_Score;
+                Message.send("bestText:SetText", this, this.m_HighScore);
+            }
         }
     }
 
